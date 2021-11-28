@@ -14,23 +14,6 @@ After completing this lab, you will be able to:
 - Create data pipeline to import poorly formatted CSV files
 - Create Mapping Data Flows
 
-## Lab setup and pre-requisites
-
-Before starting this lab, you must complete **Lab 5: *Ingest and load data into the Data Warehouse***.
-
-This lab uses the dedicated SQL pool you created in the previous lab. You should have paused the SQL pool at the end of the previous lab, so resume it by following these instructions:
-
-1. Open Synapse Studio (<https://web.azuresynapse.net/>).
-2. Select the **Manage** hub.
-3. Select **SQL pools** in the left-hand menu. If the **SQLPool01** dedicated SQL pool is paused, hover over its name and select **&#9655;**.
-
-    ![The resume button is highlighted on the dedicated SQL pool.](media/resume-dedicated-sql-pool.png "Resume")
-
-4. When prompted, select **Resume**. It will take a minute or two to resume the pool.
-5. Continue to the next exercise while the dedicated SQL pool resumes.
-
-> **Important:** Once started, a dedicated SQL pool consumes credits in your Azure subscription until it is paused. If you take a break from this lab, or decide not to complete it; follow the instructions at the end of the lab to pause your SQL pool!
-
 ## Exercise 1 - Code-free transformation at scale with Azure Synapse Pipelines
 
 Tailwind Traders would like code-free options for data engineering tasks. Their motivation is driven by the desire to allow junior-level data engineers who understand the data but do not have a lot of development experience build and maintain data transformation operations. The other driver for this requirement is to reduce fragility caused by complex code with reliance on libraries pinned to specific versions, remove code testing requirements, and improve ease of long-term maintenance.
@@ -299,7 +282,7 @@ Issues include invalid characters in the revenue currency data, and misaligned c
     ![The form is configured with the defined settings.](media/data-flow-campaign-analysis-source-settings.png "Source settings")
 
     When you create data flows, certain features are enabled by turning on debug, such as previewing data and importing a schema (projection). Due to the amount of time it takes to enable this option, and to minimize resource consumption in the lab environment, we will bypass these features.
-    
+
 6. The data source has a schema we need to set. To do this, select **Script** above the design canvas.
 
     ![The script link is highlighted above the canvas.](media/data-flow-script.png "Script")
@@ -337,7 +320,7 @@ Issues include invalid characters in the revenue currency data, and misaligned c
 
     - **Output stream name**: Enter `MapCampaignAnalytics`.
     - **Incoming stream**: Select **CampaignAnalytics**.
-    - **Options**: Check both options.
+    - **Options**: Check both of the `Skip duplicate` options.
     - **Input columns**: make sure **Auto mapping** is unselected, then provide the following values in the **Name as** fields:
       - `Region`
       - `Country`
@@ -381,7 +364,7 @@ Issues include invalid characters in the revenue currency data, and misaligned c
 
     - **Output stream name**: Enter `SelectCampaignAnalyticsColumns`.
     - **Incoming stream**: Select **ConvertColumnTypesAndValues**.
-    - **Options**: Check both options.
+    - **Options**: Check both `Skip duplicate` options.
     - **Input columns**: make sure **Auto mapping** is unchecked, then **Delete** **RevenuePart1** and **RevenueTargetPart1**. We no longer need these fields.
 
     ![The select settings are displayed as described.](media/data-flow-campaign-analysis-select-settings2.png "Select settings")
@@ -442,7 +425,7 @@ In order to run the new data flow, you need to create a new pipeline and add a d
 
     ![The data flow is selected.](media/pipeline-campaign-analysis-data-flow-settings-tab.png "Settings")
 
-8. Select **Publish all** to save your new pipeline.
+7. Select **Publish all** to save your new pipeline.
 
     ![Publish all is highlighted.](media/publish-all-1.png "Publish all")
 
@@ -474,7 +457,7 @@ Now that the pipeline run is complete, let's take a look at the SQL table to ver
 
 2. Expand the **SqlPool01** database underneath the **Workspace** section, then expand **Tables** (you may need to refresh to see the new tables).
 
-3. Right-click the **wwi.CampaignAnalytics** table, then select **New SQL script** and **Select TOP 1000 rows**. 
+3. Right-click the **wwi.CampaignAnalytics** table, then select **New SQL script** and **Select TOP 1000 rows**.
 
     ![The Select TOP 1000 rows menu item is highlighted.](media/select-top-1000-rows-campaign-analytics.png "Select TOP 1000 rows")
 
@@ -600,7 +583,7 @@ To do this, you will build a mapping data flow that performs the following tasks
 
     Verify that the script looks like this and then **Cancel** to return the graphical UI (if not, modify the script):
 
-    ```
+    ```javascript
     source(output(
             visitorId as string,
             topProductPurchases as (productId as string, itemsPurchasedLast12Months as string)[]
@@ -620,6 +603,8 @@ To do this, you will build a mapping data flow that performs the following tasks
         skipDuplicateMapInputs: false,
         skipDuplicateMapOutputs: false) ~> UserTopProducts
     ```
+
+    > **NOTE**: Pay attention to the data types in the source output. They should all be `as string`.
 
 13. Select the **+** to the right of the **UserTopProducts** step, then select the **Derived Column** schema modifier from the context menu.
 
@@ -953,14 +938,3 @@ You have decided to show Tailwind Traders how to manually trigger, monitor, then
 8. Select the **UserTopProductPurchasesASA** sink to view its details. In the example below (which may be different from your results), you can see that 1,622,203 rows were calculated with a total of 30 partitions. It took around eight seconds to stage the data in ADLS Gen2 prior to writing the data to the SQL table. The total sink processing time in our case was around 44 seconds (4). It is also apparent that we have a *hot partition* that is significantly larger than the others. If we need to squeeze extra performance out of this pipeline, we can re-evaluate data partitioning to more evenly spread the partitions to better facilitate parallel data loading and filtering. We could also experiment with disabling staging to see if there's a processing time difference. Finally, the size of the dedicated SQL pool plays a factor in how long it takes to ingest data into the sink.
 
     ![The sink details are displayed.](media/pipeline-user-profiles-data-flow-sink-details.png "Sink details")
-
-## Important: Pause your SQL pool
-
-Complete these steps to free up resources you no longer need.
-
-1. In Synapse Studio, select the **Manage** hub.
-2. Select **SQL pools** in the left-hand menu. Hover over the **SQLPool01** dedicated SQL pool and select **||**.
-
-    ![The pause button is highlighted on the dedicated SQL pool.](media/pause-dedicated-sql-pool.png "Pause")
-
-3. When prompted, select **Pause**.
