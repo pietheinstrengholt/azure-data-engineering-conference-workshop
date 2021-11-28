@@ -755,18 +755,18 @@ To do this, you will build a mapping data flow that performs the following tasks
 
     We are adding the filter step to remove any records where the **ProductId** is null. The data sets have a small percentage of invalid records, and null **ProductId** values will cause errors when loading into the **UserTopProductPurchases** dedicated SQL pool table.
 
-29. Set the **Filter on** expression to `!isNull(productId)`.
+29. Set the **Output stream name** to `NullProductIdFilter` and the **Filter on** expression to `!isNull(productId)`.
 
     ![The filter settings are shown.](media/data-flow-user-profiles-new-filter-settings.png "Filter settings")
 
-30. Select the **+** to the right of the **Filter1** step, then select the **Sink** destination from the context menu.
+30. Select the **+** to the right of the **NullProductIdFilter** step, then select the **Sink** destination from the context menu.
 
     ![The new Sink destination is highlighted.](media/data-flow-user-profiles-new-sink.png "New sink")
 
 31. Under **Sink**, configure the following:
 
     - **Output stream name**: Enter `UserTopProductPurchasesASA`.
-    - **Incoming stream**: Select **Filter1**.
+    - **Incoming stream**: Select **NullProductIdFilter**.
     - **Sink type**: select **Integration Dataset**.
     - **Dataset**: Select **asal400_wwi_usertopproductpurchases_asa**.
     - **Options**: Check **Allow schema drift** and uncheck **Validate schema**.
@@ -796,14 +796,14 @@ To do this, you will build a mapping data flow that performs the following tasks
 
         ![The mapping settings are configured as described.](media/data-flow-user-profiles-new-sink-settings-mapping.png "Mapping")
 
-34. Select the **+** to the right of the **Filter1** step, then select the **Sink** destination from the context menu to add a second sink.
+34. Select the **+** to the right of the **NullProductIdFilter** step, then select the **Sink** destination from the context menu to add a second sink.
 
     ![The new Sink destination is highlighted.](media/data-flow-user-profiles-new-sink2.png "New sink")
 
 35. Under **Sink**, configure the following:
 
     - **Output stream name**: Enter `DataLake`.
-    - **Incoming stream**: Select **Filter1**.
+    - **Incoming stream**: Select **NullProductIdFilter**.
     - **Sink type**: select **Inline**.
     - **Inline dataset type**: select **Delta**.
     - **Linked service**: Select **asaworkspace*xxxxxxx*-WorkspaceDefaultStorage**.
@@ -931,10 +931,20 @@ You have decided to show Tailwind Traders how to manually trigger, monitor, then
 
     ![The data flow details icon is highlighted.](media/pipeline-user-profiles-activity-runs.png "Activity runs")
 
-7. The data flow details displays the data flow steps and processing details. In the example below (which may be different from your results), processing time took around 44 seconds to process the SQL pool sink, and around 12 seconds to process the Data Lake sink. The **Filter1** output was around 1 million rows for both. You can see which activities took the longest to complete. The cluster startup time contributed over 2.5 minutes to the total pipeline run.
+7. The data flow details displays the data flow steps and processing details. In the example below (which may be different from your results), processing time took around 31 seconds to process the SQL pool (UserTopProductPurchasesASA) sink, and around 8 seconds to process the Data Lake sink. The cluster startup time contributed over 2.5 minutes to the total pipeline run.
 
-    ![The data flow details are displayed.](media/pipeline-user-profiles-data-flow-details.png "Data flow details")
+    ![The data flow sink details are displayed.](media/pipelines-user-profiles-data-flow-details-sink.png "Data flow sink details")
 
-8. Select the **UserTopProductPurchasesASA** sink to view its details. In the example below (which may be different from your results), you can see that 1,622,203 rows were calculated with a total of 30 partitions. It took around eight seconds to stage the data in ADLS Gen2 prior to writing the data to the SQL table. The total sink processing time in our case was around 44 seconds (4). It is also apparent that we have a *hot partition* that is significantly larger than the others. If we need to squeeze extra performance out of this pipeline, we can re-evaluate data partitioning to more evenly spread the partitions to better facilitate parallel data loading and filtering. We could also experiment with disabling staging to see if there's a processing time difference. Finally, the size of the dedicated SQL pool plays a factor in how long it takes to ingest data into the sink.
+8. Select the **Stages** icon for the **UserTopProductPurchasesASA** sink.
+
+    ![The stages icon for the UserTopProductPurchasesASA sink is highlighted.](media/pipelines-user-profiles-data-flow-details-sink.png "Sink stages")
+
+9. In the **Stages** dialog, observe the details displayed. You can see the time taken to complete each stage as well as the number of rows processed. The **NullProductIdFilter** output was around one million rows.
+
+    ![The Stages dialog is displayed with the NullProductIdFilter highlighted.](media/pipelines-user-profiles-data-flow-details-sink-stages.png "Stages")
+
+10. Close the Stages dialog.
+
+11. Select the **UserTopProductPurchasesASA** sink to view its details. In the example below (which may be different from your results), you can see that 1,622,203 rows were calculated with a total of 30 partitions. It took around eight seconds to stage the data in ADLS Gen2 prior to writing the data to the SQL table. The total sink processing time in our case was around 44 seconds (4). It is also apparent that we have a *hot partition* that is significantly larger than the others. If we need to squeeze extra performance out of this pipeline, we can re-evaluate data partitioning to more evenly spread the partitions to better facilitate parallel data loading and filtering. We could also experiment with disabling staging to see if there's a processing time difference. Finally, the size of the dedicated SQL pool plays a factor in how long it takes to ingest data into the sink.
 
     ![The sink details are displayed.](media/pipeline-user-profiles-data-flow-sink-details.png "Sink details")
