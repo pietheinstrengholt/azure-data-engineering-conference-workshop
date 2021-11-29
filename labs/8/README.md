@@ -12,30 +12,6 @@ After completing this lab, you will be able to:
 
 - Orchestrate data movement and transformation in Azure Synapse Pipelines
 
-## Lab setup and pre-requisites
-
-Before starting this lab, you should complete **Lab 6: *Transform data with Azure Data Factory or Azure Synapse Pipelines***.
-
-> **Note**: If you have ***not*** completed lab 6, but you <u>have</u> completed the lab setup for this course, you can complete these steps to create the required linked services and datasets.
->
-> 1. In Synapse Studio, on the **Manage** hub, add a new **Linked service** for **Azure Cosmos DB (SQL API)** with the following settings:
->       - **Name**: asacosmosdb01
->       - **Cosmos DB account name**: asacosmosdb*xxxxxxx*
->       - **Database name**: CustomerProfile
-> 2. On the **Data** hub, create the following **Integration datasets**:
->       - asal400_customerprofile_cosmosdb:
->           - **Source**: Azure Cosmos DB (SQL API)
->           - **Name**: asal400_customerprofile_cosmosdb
->           - **Linked service**: asacosmosdb01
->           - **Collection**: OnlineUserProfile01
->       - asal400_ecommerce_userprofiles_source
->           - **Source**: Azure Data Lake Storage Gen2
->           - **Format**: JSON
->           - **Name**: asal400_ecommerce_userprofiles_source
->           - **Linked service**: asadatalake*xxxxxxx*
->           - **File path**: wwi-02/online-user-profiles-02
->           - **Import schema**: From connection/store
-
 ## Exercise 1 - Create mapping data flow and pipeline
 
 In this exercise, you create a mapping data flow that copies user profile data to the data lake, then create a pipeline that orchestrates executing the data flow, and later on, the Spark notebook you create later in this lab.
@@ -61,7 +37,7 @@ In this exercise, you create a mapping data flow that copies user profile data t
 
 6. Replace the existing code with the following, changing ***SUFFIX*** in the **asadatalake*SUFFIX*** sink reference name on line 25 to the unique suffix for your Azure resources in this lab:
 
-    ```
+    ```json
     {
         "name": "user_profiles_to_datalake",
         "properties": {
@@ -201,9 +177,9 @@ In this exercise, you will create a Synapse Spark notebook to make these calcula
 
 6. Select **Run all** on the notebook toolbar to run the notebook.
 
-    ![The cell results are displayed.](media/notebook-top-products-cell1results.png "Cell 1 results")
-
     > **Note:** The first time you run a notebook in a Spark pool, Synapse creates a new session. This can take approximately 2-3 minutes.
+
+    ![The cell results are displayed.](media/notebook-top-products-cell1results.png "Cell 1 results")
 
 7. Create a new code cell underneath by selecting the **+ Code** button.
 
@@ -223,7 +199,7 @@ In this exercise, you will create a Synapse Spark notebook to make these calcula
 
     The output should look similar to the following:
 
-    ```
+    ```json
     +------+---------+--------------------------+------------+------------------+
     |UserId|ProductId|ItemsPurchasedLast12Months|IsTopProduct|IsPreferredProduct|
     +------+---------+--------------------------+------------+------------------+
@@ -280,7 +256,7 @@ In this exercise, you will create a Synapse Spark notebook to make these calcula
         order by a.UserId
     ```
 
-    Note that there is no output for the above query. The query uses the **top_purchases** temporary view as a source and applies a **row_number() over** method to apply a row number for the records for each user where **ItemsPurchasedLast12Months** is greatest. The **where** clause filters the results so we only retrieve up to five products where both **IsTopProduct** and **IsPreferredProduct** are set to true. This gives us the top five most purchased products for each user where those products are _also_ identified as their favorite products, according to their user profile stored in Azure Cosmos DB.
+    > Note that there is no output for the above query. The query uses the **top_purchases** temporary view as a source and applies a **row_number() over** method to apply a row number for the records for each user where **ItemsPurchasedLast12Months** is greatest. The **where** clause filters the results so we only retrieve up to five products where both **IsTopProduct** and **IsPreferredProduct** are set to true. This gives us the top five most purchased products for each user where those products are _also_ identified as their favorite products, according to their user profile stored in Azure Cosmos DB.
 
 11. Run the following in a new code cell to create and display a new DataFrame that stores the results of the **top_5_products** temporary view you created in the previous cell:
 
@@ -301,8 +277,8 @@ In this exercise, you will create a Synapse Spark notebook to make these calcula
     ```
 
     The output should be similar to:
-    
-    ```
+
+    ```sh
     before filter:  997817 , after filter:  85015
     ```
 
@@ -320,7 +296,7 @@ In this exercise, you will create a Synapse Spark notebook to make these calcula
 
     In this cell, we grouped the top five preferred products by product ID, summed up the total items purchased in the last 12 months, sorted that value in descending order, and returned the top five results. Your output should be similar to the following:
 
-    ```
+    ```json
     +---------+-----+
     |ProductId|Total|
     +---------+-----+
@@ -349,11 +325,13 @@ In this exercise, you will create a Synapse Spark notebook to make these calcula
 
     After toggling this option, you will see the word **Parameters** at the bottom right of the cell, indicating it is a parameter cell.
 
-16. Add the following code to a new code cell to use the **runId** variable as the Parquet filename in the */top5-products/* path in the primary data lake account. Replace ***SUFFIX*** in the path with the unique suffix of your primary data lake account - you'll find this in **Cell 1** at the top of the page. When you've updated the code, run the cell.
+    ![The Parameters label in the cell is highlighted.](media/cell-parameter.png "Parameters label in cell")
+
+16. Add the following code to a new code cell to use the **runId** variable as the Parquet filename in the */top5-products/* path in the primary data lake account.
+
+    > **IMPORTANT**: Replace ***SUFFIX*** in the path with the unique suffix of your primary data lake account - you'll find this in **Cell 1** at the top of the page. When you've updated the code, run the cell.
 
     ```python
-    %%pyspark
-
     top5ProductsOverall.write.parquet('abfss://wwi-02@asadatalakeSUFFIX.dfs.core.windows.net/top5-products/' + str(runId) + '.parquet')
     ```
 
@@ -385,7 +363,7 @@ Tailwind Traders wants to execute this notebook after the Mapping Data Flow runs
 
     The Success activity arrow instructs the pipeline to execute the Notebook activity after the Data flow activity successfully runs.
 
-5. Select the **Notebook activity**, select the **Settings** tab, expand **Base parameters**, and select **+ New**. Enter **`runId`** in the **Name** field. Set the the **Type** to **String** and the **Value** to **Add dynamic content**.
+5. Select the **Notebook activity**, select the **Settings** tab, expand **Base parameters**, and select **+ New**. Enter **`runId`** in the **Name** field. Set the **Type** to **String** and then click inside the **Value** box and select the **Add dynamic content** link that appears below it.
 
     ![The settings are displayed.](media/notebook-activity-settings-datalake.png "Settings")
 
@@ -425,19 +403,23 @@ Tailwind Traders wants to execute this notebook after the Mapping Data Flow runs
 
     ![The pipeline run details are displayed.](media/pipeline-run-details-datalake.png "Write User Profile Data to ASA details")
 
-7. Here we see the notebook run details. You can select the **Playback** button to watch a playback of the progress through the **jobs**. At the bottom, you can view the **Diagnostics** and **Logs** with different filter options. Hover over a stage to view its details, such as the duration, total tasks, data details, etc. Select the **View details** link on the **stage** to view its details.
+7. Here we see the notebook run details. You can select the **Playback** button to watch a playback of the progress through the **jobs**. At the bottom, you can view the **Diagnostics**, **Logs**, **Input data**, and **Output data**. Hover over a job to view its details, such as the duration, total tasks, data details, etc. Select the **Stages** link on the **job** details pane.
 
     ![The run details are displayed.](media/notebook-run-details.png "Notebook run details")
 
-8. The Spark application UI opens in a new tab where we can see the stage details. Expand the **DAG Visualization** to view the stage details.
+8. Hover over the **Stage** box that appears within the **Job** box to view its details. On the Stage Details pane, select **View Details** to open the Spark Application UI.
+
+    ![The details pane of a run stage are highlighted.](media/notebook-run-stage-details.png "Stage details")
+
+9. The Spark application UI opens in a new tab where we can see the stage details. Expand the **DAG Visualization** to view the stage details.
 
     ![The Spark stage details are displayed.](media/spark-stage-details.png "Stage details")
 
-9. Close the Spark details tab, and in Synapse Studio, navigate back to the **Data** hub.
+10. Close the Spark details tab, and in Synapse Studio, navigate back to the **Data** hub.
 
     ![Data hub.](media/data-hub.png "Data hub")
 
-10. Select the **Linked** tab, select the **wwi-02** container on the primary data lake storage account, navigate to the **top5-products** folder, and verify that a folder exists for the Parquet file whose name matches the **Pipeline run ID**.
+11. Select the **Linked** tab, select the **wwi-02** container on the primary data lake storage account, navigate to the **top5-products** folder, and verify that a folder exists for the Parquet file whose name matches the **Pipeline run ID**.
 
     ![The file is highlighted.](media/parquet-from-pipeline-run.png "Parquet file from pipeline run")
 
