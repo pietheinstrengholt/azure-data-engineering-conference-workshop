@@ -80,7 +80,7 @@ When you query Parquet files using serverless SQL pools, you can explore the dat
 
     > Notice how we updated the path to include all Parquet files in all subfolders of *sale-small/Year=2019*.
 
-    The output should be **4124857** records.
+    The output should be **339507246** records.
 
 ### Task 2: Create an external table for 2019 sales data
 
