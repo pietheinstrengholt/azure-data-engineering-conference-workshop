@@ -20,13 +20,13 @@ After completing this lab, you will be able to:
 
 Before starting this lab, open up Powershell in Administrator mode, and run the following command:
 
-    ```
-    mkdir c:\dp-203
+```
+mkdir c:\dp-203
 
-    cd c:\dp-203
+cd c:\dp-203
 
-    git clone https://github.com/microsoftlearning/dp-203-data-engineer.git data-engineering-ilt-deployment
-    ```
+git clone https://github.com/microsoftlearning/dp-203-data-engineer.git data-engineering-ilt-deployment
+```
 
 ## Exercise 1: Querying a Data Lake Store using serverless SQL pools in Azure Synapse Analytics
 
