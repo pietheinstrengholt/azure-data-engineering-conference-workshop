@@ -323,8 +323,6 @@ In this segment, we will create security groups as described above. However, our
 
 4. Select **+ New group**.
 
-    ![New group button.](media/new-group.png "New group")
-
 5. Ensure that the **Security** group type is selected, and enter `tailwind-history-owners-SUFFIX` (where *suffix* is your unique resource suffix) for the **Group name**, and then select **Create**.
 
     ![The form is configured as described.](media/new-group-history-owners.png "New Group")
