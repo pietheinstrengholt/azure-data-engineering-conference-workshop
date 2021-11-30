@@ -351,15 +351,11 @@ To test out the permissions, we will add your own account to the groups.
 
     ![The group is displayed and add members is highlighted.](media/tailwind-readers.png "tailwind-readers group")
 
-3. Add your user account that you are signed into for the lab, then select **Select**.
-
-    ![The form is displayed.](media/add-members.png "Add members")
+3. Search for your user account that you are signed into for the lab, then select **Select**.
 
 4. Open your **tailwind-2019-writers** group.
 
 5. Select **Members** on the left, then select **+ Add members**.
-
-    ![The group is displayed and add members is highlighted.](media/tailwind-2019-writers.png "tailwind-2019-writers group")
 
 6. Search for `tailwind`, select your **tailwind-current-writers** group, then select **Select**.
 
@@ -401,17 +397,16 @@ To test out the permissions, we will add your own account to the groups.
 
     ![Add role assignment is highlighted.](media/add-role-assignment.png "Add role assignment")
 
-8. For **Role**, select **Storage Blob Data Owner**. Search for `tailwind` and select your **tailwind-history-owners** group in the results. Then select **Save**.
+8. For **Role**, search **Storage Blob Data Owner**, then select **Next**.
 
-    ![The form is displayed as described.](media/add-tailwind-history-owners.png "Add role assignment")
+9. In the **Members** screen, click on **+ Select Members** and search for `tailwind` and select your **tailwind-history-owners** group in the results. Then click on **Review + Assign**, and click on **Review + Assign** again.
+
 
     The **tailwind-history-owners** security group is now assigned to the Azure Storage built-in RBAC role **Storage Blob Data Owner** for the Azure Storage account containing the data lake. This allows Azure AD user and service principals that are added to this role to have the ability to modify all data.
 
     Tailwind Traders needs to add the user security principals who will have have permissions to modify all historical data to the **tailwind-history-owners** security group.
 
-9. In the **Access Control (IAM)** list for the storage account, select your Azure user account under the **Storage Blob Data Owner** role, then select **Remove**.
-
-    ![The Access Control settings are displayed.](media/storage-access-control-updated.png "Access Control updated")
+10. In the **Access Control (IAM)** list for the storage account, select your Azure user account under the **Storage Blob Data Owner** role, then select **Remove**.
 
     Notice that the **tailwind-history-owners** group is assigned to the **Storage Blob Data Owner** group, and **tailwind-readers** is assigned to the **Storage Blob Data Reader** group.
 
@@ -423,13 +418,11 @@ To test out the permissions, we will add your own account to the groups.
 
     ![The 2019 folder is highlighted and Manage Access is selected.](media/manage-access-2019.png "Storage Explorer")
 
-2. Paste the **Object Id** value you copied from the **tailwind-2019-writers** security group into the **Add user, group, or service principal** text box, then select **Add**.
+2. In the Manage ACL screen, in the **Access permissions** screen, click on **+ Add principal**, paste the **object Id** value you copied from the **tailwind-2019-writers** security group into the **Add  principal** search box, click on **tailwind-2019-writers-suffix**, then select **Select**.
 
-    ![The Object Id value is pasted in the field.](media/manage-access-2019-object-id.png "Manage Access")
+3. Now you should see that the **tailwind-2019-writers** group is selected in the Manage ACL dialog. Check **Read**, **Write**, and **Execute** checkboxes, then select **Save**.
 
-3. Now you should see that the **tailwind-2019-writers** group is selected in the Manage Access dialog. Check the **Access** and **Default** check boxes and the **Read**, **Write**, and **Execute** checkboxes for each, then select **Save**.
-
-    ![The permissions are configured as described.](media/manage-access-2019-permissions.png "Manage Access")
+4. In the Manage ACL screen, in the **Default permissions** screen, click on **+ Add principal**, paste the **object Id** value you copied from the **tailwind-2019-writers** security group into the **Add  principal** search box, click on **tailwind-2019-writers-suffix**, then select **Select**.
 
     Now the security ACLs have been set to allow any users added to the **tailwind-current** security group to write to the **Year=2019** folder, by way of the **tailwind-2019-writers** group. These users can only manage current (2019 in this case) sales files.
 
@@ -491,23 +484,13 @@ To test out the permissions, we will add your own account to the groups.
 
 10. On the **Home** page, in the portal menu, select **Azure Active Directory**.
 
-    ![The menu item is highlighted.](media/azure-ad-menu.png "Azure Active Directory")
-
 11. Select **Groups** in the left-hand menu.
-
-    ![Groups is highlighted.](media/aad-groups-link.png "Azure Active Directory")
 
 12. Type `tailwind` in the search box, then select your **tailwind-history-owners** group in the results.
 
-    ![The tailwind groups are displayed.](media/tailwind-groups.png "All groups")
-
 13. Select **Members** on the left, then select **+ Add members**.
 
-    ![The group is displayed and add members is highlighted.](media/tailwind-history-owners.png "tailwind-history-owners group")
-
 14. Add your user account that you are signed into for the lab, then select **Select**.
-
-    ![The form is displayed.](media/add-members.png "Add members")
 
 15. In a new tab, browse to Azure Synapse Studio (<https://web.azuresynapse.net/>). Then  on the **Develop** tab, expand **Notebooks** and re-open the notebook you published previously.
 
@@ -520,6 +503,7 @@ To test out the permissions, we will add your own account to the groups.
     > **Note**: If you encounter the same error this time, **stop the Spark session** on the notebook, then select **Publish all**, then Publish. After publishing your changes, select your user profile on the top-right corner of the page and **log out**. **Close the browser tab** after logout is successful, then re-launch Synapse Studio (<https://web.azuresynapse.net/>), re-open the notebook, then re-run the cell. This may be needed because you must refresh the security token for the auth changes to take place.
 
 17. At the top right of the notebook, use the **Stop Session** button to stop the notebook session.
+
 18. Publish the notebook if you want to save the changes. Then close it.
 
     Now let's verify that the file was written to the data lake.
