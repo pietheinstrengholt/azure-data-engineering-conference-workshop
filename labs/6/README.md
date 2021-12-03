@@ -4,7 +4,7 @@ lab:
     module: 'Module 5'
 ---
 
-# Lab 5 - Ingest and load data into the Data Warehouse
+# Lab 6 - Ingest and load data into the Data Warehouse
 
 This lab teaches you how to ingest data into the data warehouse through T-SQL scripts and Synapse Analytics integration pipelines. You will learn how to load data into Synapse dedicated SQL pools with PolyBase and COPY using T-SQL. You will also learn how to use workload management along with a Copy activity in an Azure Synapse pipeline for petabyte-scale data ingestion.
 

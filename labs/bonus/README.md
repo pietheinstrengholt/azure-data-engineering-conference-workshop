@@ -1,4 +1,4 @@
-# Module 16 - Build reports using Power BI integration with Azure Synapse Analytics
+# Module 9 - Build reports using Power BI integration with Azure Synapse Analytics
 
 In this module, the student will learn how to integrate Power BI with their Synapse workspace to build reports in Power BI. The student will create a new datasource and Power BI report in Synapse Studio. Then the student will learn how to improve query performance with materialized views and result-set caching. Finally, the student will explore the data lake with serverless SQL pools and create visualizations against that data in Power BI.
 
@@ -11,7 +11,7 @@ In this module, the student will be able to:
 
 ## Lab details
 
-- [Module 16 - Build reports using Power BI integration with Azure Synapse Analytics](#module-16---build-reports-using-power-bi-integration-with-azure-synapse-analytics)
+- [Module 9 - Build reports using Power BI integration with Azure Synapse Analytics](#module-9---build-reports-using-power-bi-integration-with-azure-synapse-analytics)
   - [Lab details](#lab-details)
   - [Resource naming throughout this lab](#resource-naming-throughout-this-lab)
   - [Lab setup and pre-requisites](#lab-setup-and-pre-requisites)

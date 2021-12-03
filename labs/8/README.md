@@ -4,7 +4,7 @@ lab:
     module: 'Module 7'
 ---
 
-# Lab 7 - Integrate data from notebooks with Azure Data Factory or Azure Synapse Pipelines
+# Lab 8 - Integrate data from notebooks with Azure Data Factory or Azure Synapse Pipelines
 
 You will learn how to create linked services, and orchestrate data movement and transformation in Azure Synapse Pipelines.
 

@@ -1,708 +1,511 @@
 ---
 lab:
-    title: 'Explore, transform, and load data into the Data Warehouse using Apache Spark'
-    module: 'Module 4'
+    title: 'Run interactive queries using serverless SQL pools'
+    module: 'Module 2'
 ---
 
-# Lab 4 - Explore, transform, and load data into the Data Warehouse using Apache Spark
+# Lab 4 - Run interactive queries using serverless SQL pools
 
-This lab teaches how to explore data stored in a data lake, transform the data, and load data into a relational data store. You will explore Parquet and JSON files and use techniques to query and transform JSON files with hierarchical structures. Then you will use Apache Spark to load data into the data warehouse and join Parquet data in the data lake with data in the dedicated SQL pool.
+In this lab, you will learn how to work with files stored in the data lake and external file sources, through T-SQL statements executed by a serverless SQL pool in Azure Synapse Analytics. You will query Parquet files stored in a data lake, as well as CSV files stored in an external data store. Next, you will create Azure Active Directory security groups and enforce access to files in the data lake through Role-Based Access Control (RBAC) and Access Control Lists (ACLs).
 
 After completing this lab, you will be able to:
 
-- Perform Data Exploration in Synapse Studio
-- Ingest data with Spark notebooks in Azure Synapse Analytics
-- Transform data with DataFrames in Spark pools in Azure Synapse Analytics
-- Integrate SQL and Spark pools in Azure Synapse Analytics
+- Query Parquet data with serverless SQL pools
+- Create external tables for Parquet and CSV files
+- Create views with serverless SQL pools
+- Secure access to data in a data lake when using serverless SQL pools
+- Configure data lake security using Role-Based Access Control (RBAC) and Access Control Lists (ACLs)
 
 ## Lab setup and pre-requisites
 
-If you are not using a hosted environment, before starting this lab, ensure you have successfully completed the setup steps to create your lab environment. Then complete the following setup tasks to create a dedicated SQL pool.
+Before starting this lab, open up Powershell in Administrator mode, and run the following command:
 
-> **Note**: The setup tasks will take around 6-7 minutes. You can continue the lab while the script runs.
+```
+mkdir c:\dp-203
 
-### Task 1: Create dedicated SQL pool
+cd c:\dp-203
 
-1. Open Synapse Studio (<https://web.azuresynapse.net/>).
+git clone https://github.com/microsoftlearning/dp-203-data-engineer.git data-engineering-ilt-deployment
+```
 
-2. Select the **Manage** hub.
+## Exercise 1: Querying a Data Lake Store using serverless SQL pools in Azure Synapse Analytics
 
-    ![The manage hub is highlighted.](media/manage-hub.png "Manage hub")
+Understanding data through data exploration is one of the core challenges faced today by data engineers and data scientists as well. Depending on the underlying structure of the data as well as the specific requirements of the exploration process, different data processing engines will offer varying degrees of performance, complexity, and flexibility.
 
-3. Select **SQL pools** in the left-hand menu, then select **+ New**.
+In Azure Synapse Analytics, you can use either SQL, Apache Spark for Synapse, or both. Which service you use mostly depends on your personal preference and expertise. When conducting data engineering tasks, both options can be equally valid in many cases. However, there are certain situations where harnessing the power of Apache Spark can help you overcome problems with the source data. This is because in a Synapse Notebook, you can import from a large number of free libraries that add functionality to your environment when working with data. There are other situations where it is much more convenient and faster using serveless SQL pool to explore the data, or to expose data in the data lake through a SQL view that can be accessed from external tools, like Power BI.
 
-    ![The new button is highlighted.](media/new-dedicated-sql-pool.png "New dedicated SQL pool")
+In this exercise, you will explore the data lake using both options.
 
-4. In the **Create dedicated SQL pool** page, enter **`SQLPool01`** (You <u>must</u> use this name exactly as displayed here) for the pool name, and then set the performance level to **DW100c** (move the slider all the way to the left).
+### Task 1: Query sales Parquet data with serverless SQL pools
 
-5. Click **Review + create**. Then select **Create** on the validation step.
-6. Wait until the dedicated SQL pool is created.
+When you query Parquet files using serverless SQL pools, you can explore the data with T-SQL syntax.
 
-> **Important:** Once started, a dedicated SQL pool consumes credits in your Azure subscription until it is paused. If you take a break from this lab, or decide not to complete it; follow the instructions at the end of the lab to **pause your SQL pool**
+1. Open Synapse Studio (<https://web.azuresynapse.net/>), and then navigate to the **Data** hub.
 
-### Task 2: Execute PowerShell script
+    ![The Data menu item is highlighted.](media/data-hub.png "Data hub")
 
-1. In the hosted VM environment provided for this course, open Powershell in administrator mode, and execute the following to set the execution policy to Unrestricted so you can run the local PowerShell script file:
+2. In the pane on the left, on the **Linked** tab, expand **Azure Data Lake Storage Gen2** and the **asaworkspace*xxxxxx***  primary ADLS Gen2 account, and select the **wwi-02** container
+3. In the **sale-small/Year=2019/Quarter=Q4/Month=12/Day=20191231** folder, right-click the **sale-small-20191231-snappy.parquet** file, select **New SQL script**, and then select **Select TOP 100 rows**.
 
-    ```
-    Set-ExecutionPolicy Unrestricted
-    ```
+    ![The Data hub is displayed with the options highlighted.](media/data-hub-parquet-select-rows.png "Select TOP 100 rows")
 
-    > **Note**: If you receive a prompt that you are installing the module from an untrusted repository, select **Yes to All** to proceed with the setup.
+3. Ensure **Built-in** is selected in the **Connect to** dropdown list above the query window, and then run the query. Data is loaded by the serverless SQL endpoint and processed as if was coming from any regular relational database.
 
-2. Change directories to the root of this repo within your local file system.
+    ![The Built-in connection is highlighted.](media/built-in-selected.png "SQL Built-in")
 
-    ```
-    cd C:\dp-203\data-engineering-ilt-deployment\Allfiles\00\artifacts\environment-setup\automation\
-    ```
+    The cell output shows the query results from the Parquet file.
 
-3. Enter the following command to run a PowerShell script that creates objects in the SQL pool:
+    ![The cell output is displayed.](media/sql-on-demand-output.png "SQL output")
 
-    ```
-    .\setup-sql.ps1
-    ```
-
-4. When prompted to sign into Azure, and your browser opens; sign in using your credentials. After signing in, you can close the browser and return to Windows PowerShell.
-
-5. When prompted, sign into your Azure account again (this is required so that the script can manage resources in your Azure subscription - be sure you use the same credentials as before).
-
-6. If you have more than one Azure subscription, when prompted, select the one you want to use in the labs by entering its number in the list of subscriptions.
-
-7. When prompted, enter the name of the resource group containing your Azure Synapse Analytics workspace (such as **data-engineering-synapse-*xxxxxxx***).
-
-8. **Continue on to Exercise 1** while this script is running.
-
-> **NOTE** This script will take about 2-3 minutes to complete.
-> 
-> If it seems as though the script hangs while creating linked services for the SQLPool01 dedicated SQL pool (there are 3), press **Enter**. This tends to refresh the PowerShell script and allows it to continue to the end.
->
-> ### Potential errors that you can ignore
->
-> You may encounter a few errors and warnings during the script execution. The errors below can safely be ignored:
-> 
-> 1. The following error may occur when creating SQL users and adding role assignments in the dedicated SQL pool, and can safely be ignored:
->
->       *Principal 'xxx@xxx.com' could not be created. Only connections established with Active Directory accounts can create other Active Directory users.*
->
->2. The following error may also occur and can safely be ignored:
->
->       *07-create-wwi-perf-sale-heap with label CTAS : Sale_Heap. Cannot index into a null array.*
-
-## Exercise 1 - Perform Data Exploration in Synapse Studio
-
-One of the first data engineering tasks typically performed during data ingestion is to explore the data that is to be imported. Data exploration allows engineers to understand better the contents of files being ingested. This process helps to identify any potential data quality issues that might hinder automated ingestion processes. Through exploration, we can gain insights into data types, data quality, and whether any processing needs to be performed on the files prior to importing the data into your data lake or using it for analytics workloads.
-
-The engineers at Tailspin Traders have run into issues ingesting some of their sales data into the data warehouse, and have requested assistance in understanding how Synapse Studio can be used to help them resolve these issues. As the first step of this process, you need to explore the data to understand what is causing the issues they've encountered, and then provide them with a solution.
-
-### Task 1: Exploring data using the data previewer in Azure Synapse Studio
-
-Azure Synapse Studio provides numerous ways to explore data, from a simple preview interface to more complicated programmatic options using Synapse Spark notebooks. In this exercise, you will learn how to use these features to explore, identify, and fix problematic files. You will be exploring CSV files stored in the **wwi-02/sale-poc** folder of the data lake and learning about how to identify and fix issues.
-
-1. In Azure Synapse Studio, navigate to the **Data** hub.
-
-    ![The data hub is highlighted.](media/data-hub.png "Data hub")
-
-    > The Data hub is where you access your provisioned SQL pool databases and SQL serverless databases in your workspace, as well as external data sources, such as storage accounts and other linked services.
-
-2. We want to access files stored in the workspace's primary data lake, so select the **Linked** tab within the Data hub.
-
-    ![The Linked tab is highlighted within the Data hub.](media/data-hub-linked-services.png "Data hub Linked services")
-
-3. On the Linked tab, expand **Azure Data Lake Storage Gen2** and then expand the **Primary** data lake for the workspace.
-
-    ![On the Linked tab, ADLS Gen2 is expanded and the primary data lake account is expanded and highlighted.](media/data-hub-adls-primary.png "ADLS Gen2 Primary Storage Account")
-
-4. In the list of containers within the primary data lake storage account, select the **wwi-02** container.
-
-    ![The wwi-02 container is selected and highlighted under the primary data lake storage account.](media/data-hub-adls-primary-wwi-02-container.png "wwi-02 container")
-
-5. In the container explorer window, browse to the **sale-poc**.
-
-    ![The sale-poc folder is highlighted within the wwi-02 container in the data lake.](media/wwi-02-sale-poc.png "sale-poc folder")
-
-6. The **sale-poc** contains sales data for the month of May, 2017. There are some files in the folder. These files were imported by a temporary process to account for an issue with Tailspin's import process. Let's now take a few minutes to explore some of the files.
-
-7. Right-click the first file in the list, **sale-20170501.csv**, and select **Preview** from the context menu.
-
-    ![In the context menu for the sale-20170501.csv file, Preview is highlighted.](media/sale-20170501-csv-context-menu-preview.png "File context menu")
-
-8. The preview functionality in Synapse Studio provides an quick and code-free way to examine the contents of a file. This is an effective way of getting a basic understanding of the features (columns) and types of data stored within them for an individual file.
-
-    ![The preview dialog for the sale-20170501.csv file is displayed.](media/sale-20170501-csv-preview.png "CSV file preview")
-
-    > While in the Preview dialog for **sale-20170501.csv**, take a moment to scroll through the file preview. Scrolling down shows there are a limited number of rows included in the preview, so this is just a glimpse into the structure of the file. Scrolling to the right allows you to see the number and names of the columns contained in the file.
-
-9. Select **OK** to close the preview.
-
-10. When performing data exploration, it is important to look at more than just one file, as it helps to get a more representative sample of the data. Let's look at the next file in the folder. Right-click the **sale-20170502.csv** file and select **Preview** from the context menu.
-
-    ![In the context menu for the sale-20170502.csv file, Preview is highlighted.](media/sale-20170502-csv-context-menu-preview.png "File context menu")
-
-11. Notice the structure of this file is different from the **sale-20170501.csv** file. No data rows appear in the preview and the column headers appear to contain data and not field names.
-
-    ![The preview dialog for the sale-20170502.csv file is displayed.](media/sale-20170502-csv-preview.png "CSV File preview")
-
-12. It appears this file does not contain column headers, so set the **With column header** option to **off** (which may take a while to change) and inspect the results.
-
-    ![The preview dialog for the sale-20170502.csv file is displayed, with the With column header option set to off.](media/sale-20170502-csv-preview-with-column-header-off.png "CSV File preview")
-
-    > Setting the **With column headers** to off verifies that the file does not contain column headers. All columns have "(NO COLUMN NAME)" in the header. This setting moves the data down appropriately, and it appears this is only a single row. By scrolling to the right, you will notice that while there appears to only be a single row, there are many more columns than what we saw when previewing the first file. That file contained 11 columns.
-
-13. Since we have seen two different file structures, let's look at another file to see if we can learn which format is more typical of the files within the **sale-poc** folder. Close the preview of **sale-20170502.csv**, and then open a preview of **sale-20170503.csv**.
-
-    ![In the context menu for the sale-20170503.csv file, Preview is highlighted.](media/sale-20170503-csv-context-menu-preview.png "File context menu")
-
-14. Verify that the **sale-20170503.csv** file appears to have a structure similar to that found in **20170501.csv**.
-
-    ![The preview dialog for the sale-20170503.csv file is displayed.](media/sale-20170503-csv-preview.png "CSV File preview")
-
-15. Select **OK** to close the preview.
-
-### Task 2: Using serverless SQL pools to explore files
-
-The preview functionality in Synapse Studio enables quick exploration of files, but doesn't allow us to look deeper into the data or gain much in the way of insights into files with issues. In this task, we will use the **serverless SQL pools (built-in)** functionality of Synapse to explore these files using T-SQL.
-
-1. Right-click the **sale-20170501.csv** file again, this time selecting **New SQL Script** and **Select TOP 100 rows** from the context menu.
-
-    ![In the context menu for the sale-20170501.csv file, New SQL script and Select TOP 100 rows are highlighted.](media/sale-20170501-csv-context-menu-new-sql-script.png "File context menu")
-
-2. A new SQL script tab will open in Synapse Studio containing a SELECT statement to read the first 100 rows of the file. This provides another way to examine the contents of files. By limiting the number of rows being examined, we can speed up the exploration process, as queries to load all the data within the files will run slower.
-
-    ![The T-SQL script generated for reading the top 100 rows of the file is displayed.](media/sale-20170501-csv-sql-select-top-100.png "T-SQL script to preview CSV file")
-
-    > **Tip**: Hide the script's **Properties** pane to make it easier to see the script.
-
-    T-SQL queries against files stored in the data lake leverage the OPENROWSET function, which can be referenced in the FROM clause of a query as if it were a table. It supports bulk operations through a built-in BULK provider that enables data from a file to be read and returned as a rowset. To learn more, you can review the to [OPENROWSET documentation](https://docs.microsoft.com/azure/synapse-analytics/sql/develop-openrowset).
-
-3. Now, select **Run** on the toolbar to execute the query.
-
-    ![The Run button on the SQL toolbar is highlighted.](media/sql-on-demand-run.png "Synapse SQL toolbar")
-
-4. In the **Results** pane, observe the output.
-
-    ![The results pane is displayed, containing the default results of running the OPENROWSET function. Column headers named C1 through C11 are highlighted.](media/sale-20170501-csv-sql-select-top-100-results.png "Query results")
-
-    > In the results, you will notice that the first row, containing the column headers, is rendered as a data row, and the columns are assigned names **C1** - **C11**. You can use the FIRSTROW parameter of the OPENROWSET function to specify the number of the first fow of the file to display as data. The default value is 1, so if a file contains a header row, the value can be set to 2 to skip the column headers. You can then specify the schema associated with the file using the `WITH` clause.
-
-5. Modify the query as shown below to skip the header row and specify the names of the columns in the resultset; replacing *SUFFIX* with the unique resource suffix for your storage account:
+4. Modify the SQL query to perform aggregates and grouping operations to better understand the data. Replace the query with the following, replacing *SUFFIX* with the unique suffix for your Azure Data Lake store and making sure that the file path in the OPENROWSET function matches the current file path:
 
     ```sql
     SELECT
-        TOP 100 *
+        TransactionDate, ProductId,
+            CAST(SUM(ProfitAmount) AS decimal(18,2)) AS [(sum) Profit],
+            CAST(AVG(ProfitAmount) AS decimal(18,2)) AS [(avg) Profit],
+            SUM(Quantity) AS [(sum) Quantity]
     FROM
         OPENROWSET(
-            BULK 'https://asadatalakeSUFFIX.dfs.core.windows.net/wwi-02/sale-poc/sale-20170501.csv',
-            FORMAT = 'CSV',
-            PARSER_VERSION='2.0',
-            FIRSTROW = 2
-        ) WITH (
-            [TransactionId] varchar(50),
-            [CustomerId] int,
-            [ProductId] int,
-            [Quantity] int,
-            [Price] decimal(10,3),
-            [TotalAmount] decimal(10,3),
-            [TransactionDate] varchar(8),
-            [ProfitAmount] decimal(10,3),
-            [Hour] int,
-            [Minute] int,
-            [StoreId] int
-        ) AS [result]
+            BULK 'https://asadatalakeSUFFIX.dfs.core.windows.net/wwi-02/sale-small/Year=2019/Quarter=Q4/Month=12/Day=20191231/sale-small-20191231-snappy.parquet',
+            FORMAT='PARQUET'
+        ) AS [r] GROUP BY r.TransactionDate, r.ProductId;
     ```
 
-    ![The results of the query above, using the FIRSTROW parameter and the WITH clause to apply the column headers and schema to the data in the file.](media/sale-20170501-csv-sql-select-top-100-results-with-schema.png "Query results using FIRSTROW and WITH clause")
+    ![The T-SQL query above is displayed within the query window.](media/sql-serverless-aggregates.png "Query window")
 
-    > Using the OPENROWSET function, you can now use T-SQL syntax to further explore your data. For example, you can use a WHERE clause to check various fields for *null* or other values that might need to be handled prior to using the data for advanced analytics workloads. With the schema specified, you can refer to fields by name to make this processes easier.
-
-6. Close the SQL script tab. If prompted, select **Close + discard changes**.
-
-    ![The Close + discard button is highlighted on the Discard changes dialog.](media/sql-script-discard-changes-dialog.png "Discard changes?")
-
-7. We saw while using the **Preview** functionality that the **sale-20170502.csv** file is poorly formed. Let's see if we can learn more about the data in this file using T-SQL. In the **wwi-02** tab, right-click the **sale-20170502.csv** file and select **New SQL script** and **Select TOP 100 rows**.
-
-    ![The wwi-02 tab is highlighted and the context menu for sale-20170502.csv is displayed. New SQL script and Select TOP 100 are highlighted in the context menu.](media/sale-20170502-csv-context-menu-new-sql-script.png "File context menu")
-
-8. Run the automatically generated query.
-
-    ![The Run button on the SQL toolbar is highlighted.](media/sql-on-demand-run.png "Synapse SQL toolbar")
-
-9. Observe that the query results in the error, *Error handling external file: 'Row larger than maximum allowed row size of 8388608 bytes found starting at byte 0.'*.
-
-    ![The error message 'Row larger than maximum allowed row size of 8388608 bytes found starting at byte 0.' is displayed in the results pane.](media/sale-20170502-csv-messages-error.png "Error message")
-
-    > This error aligns with what we saw in the preview window for this file. In the preview we saw the data being separated in to columns, but all of the data was in a single row. This implies the data is being split into columns using the default field delimiter (comma). What appears to be missing, however, is a row terminator, `\r`.
-
-10. Close the query tab, discarding the changes, and in the **wwi-02** tab, right-click the **sale-20170502.csv** file and select **Download**. This downloads the file and opens it in the browser.
-
-11. Review the data in the browser, and note that there are no line-terminators; all of the data is in a single line (which wraps in the browser display).
-
-12. Close the browser tab containing the contents of the **sale-20170502.csv** file.
-
-    To fix the file, we need to use code. T-SQL and Synapse Pipelines do not have the ability to efficiently handle this type of issue. To address the problems with this file, we need to use a Synapse Spark notebook.
-
-### Task 3: Exploring and fixing data with Synapse Spark
-
-In this task, you will use a Synapse Spark notebook to explore a few of the files in the **wwi-02/sale-poc** folder in the data lake. You will also use Python code to fix the issues with the **sale-20170502.csv** file, so all the files in the directory can be ingested using a Synapse Pipeline later.
-
-1. In Synapse Studio, open the **Develop** hub.
-
-    ![The develop hub is highlighted.](media/develop-hub.png "Develop hub")
-
-2. In the **+** menu, select **Import**.
-
-    ![On the Develop hub, the Add New Resource (+) button is highlighted and Import is highlighted in the menu.](media/develop-hub-add-new-resource-import.png "Develop hub import notebook")
-
-3. Import the **Explore with Spark.ipynb** notebook in the C:\dp-203\data-engineering-ilt-deployment\Allfiles\synapse-apache-spark-notebooks folder.
-
-4. Follow the instructions contained within the notebook to complete the remainder of this task, attaching it to the **SparkPool01** Spark pool. Note that the first cell may take some time to run as the Spark pool must be started. 
-
-5. When you have completed the **Explore with Spark** notebook, select on the **Stop Session** button on the right hand side of the notebook toolbar to release the Spark cluster for the next exercise.
-
-    ![The stop session button is highlighted.](media/stop-session.png "Stop session")
-
-## Exercise 2 - Ingesting data with Spark notebooks in Azure Synapse Analytics
-
-Tailwind Traders has unstructured and semi-structured files from various data sources. Their data engineers want to use their Spark expertise to explore, ingest, and transform these files.
-
-You recommend using Synapse Notebooks, which are integrated in the Azure Synapse Analytics workspace and used from within Synapse Studio.
-
-### Task 1: Ingest and explore Parquet files from a data lake with Apache Spark for Azure Synapse
-
-1. In Azure Synapse Studio, select the **Data** hub.
-2. On the **Linked** tab, in the **wwi-02** container, browse to the *sale-small/Year=2019/Quarter=Q4/Month=12/Day=20191231* folder. Then right-click the Parquet file, select **New notebook**, and then select **Load to DataFrame**.
-
-    ![The Parquet file is displayed as described.](media/2019-sale-parquet-new-notebook.png "New notebook")
-
-    This generates a notebook with PySpark code to load the data in a Spark dataframe and display 10 rows with the header.
-
-3. Attach the **SparkPool01** Spark pool to the notebook, but **<u>do not run/execute the cell at this stage</u>** -  you need to create a variable for the name of your data lake first.
-
-    ![The Spark pool is highlighted.](media/2019-sale-parquet-notebook-sparkpool.png "Notebook")
-
-    The Spark pool provides the compute for all notebook operations. If you look under the notebook toolbar, you'll see that the pool has not started. When you run a cell in the notebook while the pool is idle, the pool will start and allocate resources. This is a one-time operation until the pool auto-pauses from being idle for too long.
-
-    ![The Spark pool is in a paused state.](media/spark-pool-not-started.png "Not started")
-
-    > The auto-pause settings are configured on the Spark pool configuration in the Manage hub.
-
-4. Add the following beneath the code in the cell to define a variable named **datalake** whose value is the name of the primary storage account (replace *SUFFIX* with the unique suffix for your data store):
-
-    ```python
-    datalake = 'asadatalakeSUFFIX'
-    ```
-
-    ![The variable value is updated with the storage account name.](media/datalake-variable.png "datalake variable")
-
-    This variable will be used in subsequent cells.
-
-5. Select **Run all** on the notebook toolbar to execute the notebook.
-
-    ![Run all is highlighted.](media/notebook-run-all.png "Run all")
-
-    > **Note:** The first time you run a notebook in a Spark pool, Azure Synapse creates a new session. This can take approximately 2-3 minutes.
-
-    > **Note:** To run just the cell, either hover over the cell and select the _Run cell_ icon to the left of the cell, or select the cell then type **Ctrl+Enter** on your keyboard.
-
-6. After the cell run is complete, change the View to **Chart** in the cell output.
-
-    ![The Chart view is highlighted.](media/2019-sale-parquet-table-output.png "Cell 1 output")
-
-    By default, the cell outputs to a table view when we use the **display()** function. We see in the output the sales transaction data stored in the Parquet file for December 31, 2019. Let's select the **Chart** visualization to see a different view of the data.
-
-7. Select the **View options** button to the right.
-
-    ![The button is highlighted.](media/2010-sale-parquet-chart-options-button.png "View options")
-
-8. Set **Key** to **ProductId** and **Values** to **TotalAmount**, then select **Apply**.
-
-    ![The options are configured as described.](media/2010-sale-parquet-chart-options.png "View options")
-
-9. The chart visualization is displayed. Hover over the bars to view details.
-
-    ![The configured chart is displayed.](media/2019-sale-parquet-chart.png "Chart view")
-
-10. Create a new cell underneath by selecting **+ Code**.
-
-11. The Spark engine can analyze the Parquet files and infer the schema. To do this, enter the following in the new cell and run it:
-
-    ```python
-    df.printSchema()
-    ```
-
-    Your output should look like the following:
-
-    ```
-    root
-     |-- TransactionId: string (nullable = true)
-     |-- CustomerId: integer (nullable = true)
-     |-- ProductId: short (nullable = true)
-     |-- Quantity: byte (nullable = true)
-     |-- Price: decimal(38,18) (nullable = true)
-     |-- TotalAmount: decimal(38,18) (nullable = true)
-     |-- TransactionDate: integer (nullable = true)
-     |-- ProfitAmount: decimal(38,18) (nullable = true)
-     |-- Hour: byte (nullable = true)
-     |-- Minute: byte (nullable = true)
-     |-- StoreId: short (nullable = true)
-    ```
-
-    Spark evaluates the file contents to infer the schema. This automatic inference is usually sufficient for data exploration and most transformation tasks. However, when you load data to an external resource like a SQL table, sometimes you need to declare your own schema and apply that to the dataset. For now, the schema looks good.
-
-12. Now let's use aggregates and grouping operations to better understand the data. Create a new code cell and enter the following, then run the cell:
-
-    ```python
-    from pyspark.sql import SparkSession
-    from pyspark.sql.types import *
-    from pyspark.sql.functions import *
-
-    profitByDateProduct = (df.groupBy("TransactionDate","ProductId")
-        .agg(
-            sum("ProfitAmount").alias("(sum)ProfitAmount"),
-            round(avg("Quantity"), 4).alias("(avg)Quantity"),
-            sum("Quantity").alias("(sum)Quantity"))
-        .orderBy("TransactionDate"))
-    display(profitByDateProduct.limit(100))
-    ```
-
-    > We import required Python libraries to use aggregation functions and types defined in the schema to successfully execute the query.
-
-    The output shows the same data we saw in the chart above, but now with **sum** and **avg** aggregates. Notice that we use the **alias** method to change the column names.
-
-    ![The aggregates output is displayed.](media/2019-sale-parquet-aggregates.png "Aggregates output")
-
-13. Keep the notebook open for the next excercise.
-
-## Exercise 3 - Transforming data with DataFrames in Spark pools in Azure Synapse Analytics
-
-In addition to the sales data, Tailwind Traders has customer profile data from an e-commerce system that provides top product purchases for each visitor of the site (customer) over the past 12 months. This data is stored within JSON files in the data lake. They have struggled with ingesting, exploring, and transforming these JSON files and want your guidance. The files have a hierarchical structure that they want to flatten before loading into relational data stores. They also wish to apply grouping and aggregate operations as part of the data engineering process. You recommend using Synapse Notebooks to explore and apply data transformations on the JSON files.
-
-### Task 1: Query and transform JSON data with Apache Spark for Azure Synapse
-
-1. Create a new code cell in the Spark notebook, enter the following code and run the cell:
-
-    ```python
-    df = (spark.read \
-            .option('inferSchema', 'true') \
-            .json('abfss://wwi-02@' + datalake + '.dfs.core.windows.net/online-user-profiles-02/*.json', multiLine=True)
-        )
-
-    df.printSchema()
-    ```
-
-    > The **datalake** variable you created in the first cell is used here as part of the file path.
-
-    Your output should look like the following:
-
-    ```
-    root
-    |-- topProductPurchases: array (nullable = true)
-    |    |-- element: struct (containsNull = true)
-    |    |    |-- itemsPurchasedLast12Months: long (nullable = true)
-    |    |    |-- productId: long (nullable = true)
-    |-- visitorId: long (nullable = true)
-    ```
-
-    > Notice that we are selecting all JSON files within the **online-user-profiles-02** directory. Each JSON file contains several rows, which is why we specified the **multiLine=True** option. Also, we set the **inferSchema** option to **true**, which instructs the Spark engine to review the files and create a schema based on the nature of the data.
-
-2. We have been using Python code in these cells up to this point. If we want to query the files using SQL syntax, one option is to create a temporary view of the data within the dataframe. Run the following code in a new code cell to create a view named **user_profiles**:
-
-    ```python
-    # create a view called user_profiles
-    df.createOrReplaceTempView("user_profiles")
-    ```
-
-3. Create a new code cell. Since we want to use SQL instead of Python, we use the **%%sql** *magic* to set the language of the cell to SQL. Execute the following code in the cell:
+5. Let's move on from this single file from 2019 and transition to a newer data set. We want to figure out how many records are contained within the Parquet files for all 2019 data. This information is important for planning how we optimize for importing the data into Azure Synapse Analytics. To do this, we'll replace the query with the following (be sure to update the suffix of your data lake in the BULK statement):
 
     ```sql
-    %%sql
-
-    SELECT * FROM user_profiles LIMIT 10
+    SELECT
+        COUNT(*)
+    FROM
+        OPENROWSET(
+            BULK 'https://asadatalakeSUFFIX.dfs.core.windows.net/wwi-02/sale-small/Year=2019/*/*/*/*',
+            FORMAT='PARQUET'
+        ) AS [r];
     ```
 
-    Notice that the output shows nested data for **topProductPurchases**, which includes an array of **productId** and **itemsPurchasedLast12Months** values. You can expand the fields by clicking the right triangle in each row.
+    > Notice how we updated the path to include all Parquet files in all subfolders of *sale-small/Year=2019*.
 
-    ![JSON nested output.](media/spark-json-output-nested.png "JSON output")
+    The output should be **339507246** records.
 
-    This makes analyzing the data a bit difficult. This is because the JSON file contents look like the following:
+### Task 2: Create an external table for 2019 sales data
 
-    ```json
-    [
-        {
-            "visitorId": 9529082,
-            "topProductPurchases": [
-                {
-                    "productId": 4679,
-                    "itemsPurchasedLast12Months": 26
-                },
-                {
-                    "productId": 1779,
-                    "itemsPurchasedLast12Months": 32
-                },
-                {
-                    "productId": 2125,
-                    "itemsPurchasedLast12Months": 75
-                },
-                {
-                    "productId": 2007,
-                    "itemsPurchasedLast12Months": 39
-                },
-                {
-                    "productId": 1240,
-                    "itemsPurchasedLast12Months": 31
-                },
-                {
-                    "productId": 446,
-                    "itemsPurchasedLast12Months": 39
-                },
-                {
-                    "productId": 3110,
-                    "itemsPurchasedLast12Months": 40
-                },
-                {
-                    "productId": 52,
-                    "itemsPurchasedLast12Months": 2
-                },
-                {
-                    "productId": 978,
-                    "itemsPurchasedLast12Months": 81
-                },
-                {
-                    "productId": 1219,
-                    "itemsPurchasedLast12Months": 56
-                },
-                {
-                    "productId": 2982,
-                    "itemsPurchasedLast12Months": 59
-                }
-            ]
-        },
-        {
-            ...
-        },
-        {
-            ...
-        }
-    ]
+Rather than creating a script with OPENROWSET and a path to the root 2019 folder every time we want to query the Parquet files, we can create an external table.
+
+1. In Synapse Studio, return to the **wwi-02** tab, which should still be showing the contents of the *sale-small/Year=2019/Quarter=Q4/Month=12/Day=20191231* folder.
+2. Right-click the **sale-small-20191231-snappy.parquet** file, select **New SQL script**, and then select **Create external table**. In the New external table dialog box, click **Continue**.
+3. Make sure **Built-in** is selected for the **SQL pool**. Then, under **Select a database**, select **+ New** and create a database named `demo`, and click **Create**. For **External table name**, enter `All2019Sales`. Finally, under **Create external table**, ensure **Using SQL script** is selected, and then select **Open Script** to generate the SQL script.
+
+    ![The create external table form is displayed.](media/create-external-table-form.png "Create external table")
+
+    > **Note**: The **Properties** pane for the script open automatically. You can close it by using the **Properties** button above it on the right to make it easier to work with the script.
+
+    The generated script contains the following components:
+
+    - **1)** The script begins with creating the *SynapseParquetFormat* external file format with a *FORMAT_TYPE* of *PARQUET*.
+    - **2)** Next, the external data source is created, pointing to the *wwi-02* container of the data lake storage account.
+    - **3)** The CREATE EXTERNAL TABLE WITH statement specifies the file location and refers to the new external file format and data source created above.
+    - **4)** Finally, we select the top 100 results from the `2019Sales` external table.
+    
+4 In the CREATE EXTERNAL TABLE statement, in the **[TransactionId] varchar(8000)** line, add `COLLATE Latin1_General_100_BIN2_UTF8`; and replace the *LOCATION* value with `sale-small/Year=2019/*/*/*/*.parquet` so that the statement becomes similar to the following (except with your unique resource SUFFIX):
+
+```sql
+CREATE EXTERNAL TABLE All2019Sales (
+    [TransactionId] varchar(8000) COLLATE Latin1_General_100_BIN2_UTF8,
+    [CustomerId] int,
+    [ProductId] smallint,
+    [Quantity] smallint,
+    [Price] numeric(38,18),
+    [TotalAmount] numeric(38,18),  
+    [TransactionDate] int,
+    [ProfitAmount] numeric(38,18),
+    [Hour] smallint,
+    [Minute] smallint,
+    [StoreId] smallint
+    )
+    WITH (
+    LOCATION = 'sale-small/Year=2019/*/*/*/*.parquet',
+    DATA_SOURCE = [wwi-02_asadatalakeSUFFIX_dfs_core_windows_net],
+    FILE_FORMAT = [SynapseParquetFormat]
+    )
+GO
+```
+
+5. Make sure the script is connected to the serverless SQL pool (**Built-in**) and that the **demo** database is selected in the **Use database** list (use the **...** button to see the list if the pane is too small to display it, and then use the &#8635; button to refresh the list if needed).
+
+    ![The Built-in pool and demo database are selected.](media/built-in-and-demo.png "Script toolbar")
+
+6. Run the modified script.
+
+    After running the script, we can see the output of the SELECT query against the **All2019Sales** external table. This displays the first 100 records from the Parquet files located in the *YEAR=2019* folder.
+
+    ![The query output is displayed.](media/create-external-table-output.png "Query output")
+
+    > **Tip**: If an error occurs because of a mistake in your code, you should delete any resources that were successfully created before trying again. You can do this by running the appropriate DROP statements, or by switching to the **Workspace** tab, refreshing the list of **Databases**, and deleting the objects in the **demo** database.
+
+### Task 3: Create an external table for CSV files
+
+Tailwind Traders found an open data source for country population data that they want to use. They do not want to merely copy the data since it is regularly updated with projected populations in future years.
+
+You decide to create an external table that connects to the external data source.
+
+1. Replace the SQL script you ran in the previous task with the following code:
+
+    ```sql
+    IF NOT EXISTS (SELECT * FROM sys.symmetric_keys) BEGIN
+        declare @pasword nvarchar(400) = CAST(newid() as VARCHAR(400));
+        EXEC('CREATE MASTER KEY ENCRYPTION BY PASSWORD = ''' + @pasword + '''')
+    END
+
+    CREATE DATABASE SCOPED CREDENTIAL [sqlondemand]
+    WITH IDENTITY='SHARED ACCESS SIGNATURE',  
+    SECRET = 'sv=2018-03-28&ss=bf&srt=sco&sp=rl&st=2019-10-14T12%3A10%3A25Z&se=2061-12-31T12%3A10%3A00Z&sig=KlSU2ullCscyTS0An0nozEpo4tO5JAgGBvw%2FJX2lguw%3D'
+    GO
+
+    -- Create external data source secured using credential
+    CREATE EXTERNAL DATA SOURCE SqlOnDemandDemo WITH (
+        LOCATION = 'https://sqlondemandstorage.blob.core.windows.net',
+        CREDENTIAL = sqlondemand
+    );
+    GO
+
+    CREATE EXTERNAL FILE FORMAT QuotedCsvWithHeader
+    WITH (  
+        FORMAT_TYPE = DELIMITEDTEXT,
+        FORMAT_OPTIONS (
+            FIELD_TERMINATOR = ',',
+            STRING_DELIMITER = '"',
+            FIRST_ROW = 2
+        )
+    );
+    GO
+
+    CREATE EXTERNAL TABLE [population]
+    (
+        [country_code] VARCHAR (5) COLLATE Latin1_General_BIN2,
+        [country_name] VARCHAR (100) COLLATE Latin1_General_BIN2,
+        [year] smallint,
+        [population] bigint
+    )
+    WITH (
+        LOCATION = 'csv/population/population.csv',
+        DATA_SOURCE = SqlOnDemandDemo,
+        FILE_FORMAT = QuotedCsvWithHeader
+    );
+    GO
     ```
 
-4. PySpark contains a special [**explode**](https://spark.apache.org/docs/latest/api/python/pyspark.sql.html?highlight=explode#pyspark.sql.functions.explode) function, which returns a new row for each element of the array. This will help flatten the **topProductPurchases** column for better readability or for easier querying. Run the following in a new code cell:
+    At the top of the script, we create a MASTER KEY with a random password. Next, we create a database-scoped credential for the containers in the external storage account using a shared access signature (SAS) for delegated access. This credential is used when we create the **SqlOnDemandDemo** external data source that points to the location of the external storage account that contains the population data:
+
+    ![The script is displayed.](media/script1.png "Create master key and credential")
+
+    > Database-scoped credentials are used when any principal calls the OPENROWSET function with a DATA_SOURCE or selects data from an external table that doesn't access public files. The database scoped credential doesn't need to match the name of storage account because it will be explicitly used in the DATA SOURCE that defines the storage location.
+
+    In the next part of the script, we create an external file format called **QuotedCsvWithHeader**. Creating an external file format is a prerequisite for creating an External Table. By creating an External File Format, you specify the actual layout of the data referenced by an external table. Here we specify the CSV field terminator, string delimiter, and set the FIRST_ROW value to 2 since the file contains a header row:
+
+    ![The script is displayed.](media/script2.png "Create external file format")
+
+    Finally, at the bottom of the script, we create an external table named **population**. The WITH clause specifies the relative location of the CSV file, points to the data source created above, as well as the *QuotedCsvWithHeader* file format:
+
+    ![The script is displayed.](media/script3.png "Create external table")
+
+2. Run the script.
+
+    Note that there are no data results for this query.
+
+3. Replace the SQL script with the following to select from the population external table, filtered by 2019 data where the population is greater than 100 million:
+
+    ```sql
+    SELECT [country_code]
+        ,[country_name]
+        ,[year]
+        ,[population]
+    FROM [dbo].[population]
+    WHERE [year] = 2019 and population > 100000000
+    ```
+
+4. Run the script.
+5. In the query results, select the **Chart** view, then configure it as follows:
+
+    - **Chart type**: Bar
+    - **Category column**: country_name`
+    - **Legend (series) columns**: population
+    - **Legend position**: bottom - center
+
+    ![The chart is displayed.](media/population-chart.png "Population chart")
+
+### Task 4: Create a view with a serverless SQL pool
+
+Let's create a view to wrap a SQL query. Views allow you to reuse queries and are needed if you want to use tools, such as Power BI, in conjunction with serverless SQL pools.
+
+1. In the **Data** hub, on the **Linked** tab, in the **Azure Data Lake Storage Gen2/asaworkspace*xxxxxx*/ wwi-02** container, avigate to the **customer-info** folder. Then right-click the **customerinfo.csv** file, select **New SQL script**, and then **Select TOP 100 rows**.
+
+    ![The Data hub is displayed with the options highlighted.](media/customerinfo-select-rows.png "Select TOP 100 rows")
+
+3. Select **Run** to execute the script, and notice that the first row of the CSV file is the column header row. The columns in the resultset are named **C1**, **C2**, and so on.
+
+    ![The CSV results are displayed.](media/select-customerinfo.png "customerinfo.csv file")
+
+4. Update the script with the following code and **make sure you replace SUFFIX** in the OPENROWSET BULK path with your unique resource suffix.
+
+    ```sql
+    CREATE VIEW CustomerInfo AS
+        SELECT * 
+    FROM OPENROWSET(
+            BULK 'https://asadatalakeSUFFIX.dfs.core.windows.net/wwi-02/customer-info/customerinfo.csv',
+            FORMAT = 'CSV',
+            PARSER_VERSION='2.0',
+            FIRSTROW=2
+        )
+        WITH (
+        [UserName] NVARCHAR (50),
+        [Gender] NVARCHAR (10),
+        [Phone] NVARCHAR (50),
+        [Email] NVARCHAR (100),
+        [CreditCard] NVARCHAR (50)
+        ) AS [r];
+        GO
+
+    SELECT * FROM CustomerInfo;
+    GO
+    ```
+
+    ![The script is displayed.](media/create-view-script.png "Create view script")
+
+5. In the **Use database** list, ensure **demo** is still selected, and then run the script.
+
+    We just created the view to wrap the SQL query that selects data from the CSV file, then selected rows from the view:
+
+    ![The query results are displayed.](media/create-view-script-results.png "Query results")
+
+    Notice that the first row no longer contains the column headers. This is because we used the FIRSTROW=2 setting in the OPENROWSET statement when we created the view.
+
+6. In the **Data** hub, select the **Workspace** tab. Then select the actions ellipses **(...)** to the right of the Databases group and select **&#8635; Refresh**.
+
+    ![The refresh button is highlighted.](media/refresh-databases.png "Refresh databases")
+
+7. Expand the **demo** SQL database.
+
+    ![The demo database is displayed.](media/demo-database.png "Demo database")
+
+    The database contains the following objects that we created in our earlier steps:
+
+    - **1) External tables**: *All2019Sales* and *population*.
+    - **2) External data sources**: *SqlOnDemandDemo* and *wwi-02_asadatalakeinadayXXX_dfs_core_windows_net*.
+    - **3) External file formats**: *QuotedCsvWithHeader* and *SynapseParquetFormat*.
+    - **4) Views**: *CustomerInfo*
+
+## Exercise 2 - Securing access to data using a serverless SQL pool in Azure Synapse Analytics
+
+Tailwind Traders wants to enforce that any kind of modifications to sales data can happen in the current year only, while allowing all authorized users to query the entirety of data. They have a small group of admins who can modify historic data if needed.
+
+- Tailwind Traders should create a security group in AAD, for example called **tailwind-history-owners**, with the intent that all users who belong to this group will have permissions to modify data from previous years.
+- The **tailwind-history-owners** security group needs to be assigned to the Azure Storage built-in RBAC role **Storage Blob Data Owner** for the Azure Storage account containing the data lake. This allows AAD user and service principals that are added to this role to have the ability to modify all data from previous years.
+- They need to add the user security principals who will have have permissions to modify all historical data to the **tailwind-history-owners** security group.
+- Tailwind Traders should create another security group in AAD, for example called **tailwind-readers**, with the intent that all users who belong to this group will have permissions to read all contents of the file system (**prod** in this case), including all historical data.
+- The **tailwind-readers** security group needs to be assigned to the Azure Storage built-in RBAC role **Storage Blob Data Reader** for the Azure Storage account containing the data lake. This allows AAD user and service principals that are added to this security group to have the ability to read all data in the file system, but not to modify it.
+- Tailwind Traders should create another security group in AAD, for example called **tailwind-2020-writers**, with the intent that all users who belong to this group will have permissions to modify data only from the year 2020.
+- They would create a another security group, for example called **tailwind-current-writers**, with the intent that only security groups would be added to this group. This group will have permissions to modify data only from the current year, set using ACLs.
+- They need to add the **tailwind-readers** security group to the **tailwind-current-writers** security group.
+- At the start of the year 2020, Tailwind Traders would add **tailwind-current-writers** to the **tailwind-2020-writers** security group.
+- At the start of the year 2020, on the **2020** folder, Tailwind Traders would set the read, write and execute ACL permissions for the **tailwind-2020-writers** security group.
+- At the start of the year 2021, to revoke write access to the 2020 data they would remove the **tailwind-current-writers** security group from the **tailwind-2020-writers** group. Members of **tailwind-readers** would continue to be able to read the contents of the file system because they have been granted read and execute (list) permissions not by the ACLs but by the RBAC built in role at the level of the file system.
+- This approach takes into account that current changes to ACLs do not inherit permissions, so removing the write permission would require writing code that traverses all of its content removing the permission at each folder and file object.
+- This approach is relatively fast. RBAC role assignments may take up to five minutes to propagate, regardless of the volume of data being secured.
+
+### Task 1: Create Azure Active Directory security groups
+
+In this segment, we will create security groups as described above. However, our data set ends in 2019, so we will create a **tailwind-2019-writers** group instead of 2021.
+
+1. Switch back to the Azure portal (<https://portal.azure.com>) in a different browser tab, leaving Synapse Studio open.
+
+2. On the **Home** page, expand the portal menu if it is not already expanded, then select **Azure Active Directory**.
+
+    ![The menu item is highlighted.](media/azure-ad-menu.png "Azure Active Directory")
+
+3. Select **Groups** in the left-hand menu.
+
+    ![Groups is highlighted.](media/aad-groups-link.png "Azure Active Directory")
+
+4. Select **+ New group**.
+
+5. Ensure that the **Security** group type is selected, and enter `tailwind-history-owners-SUFFIX` (where *suffix* is your unique resource suffix) for the **Group name**, and then select **Create**.
+
+    ![The form is configured as described.](media/new-group-history-owners.png "New Group")
+
+6. Add a second new security group named `tailwind-readers-SUFFIX` (where *SUFFIX* is your unique resource suffix).
+7. Add a third security group named `tailwind-current-writers-SUFFIX` (where *SUFFIX* is your unique resource suffix).
+8. Add a fourth security group named `tailwind-2019-writers-SUFFIX` (where *SUFFIX* is your unique resource suffix).
+
+> **Note**: In the remaining instructions in this exercise, we'll omit the *-SUFFIX* part of the role names for clarity. You should work with your uniquely identified role names based on your specific resource suffix.
+
+### Task 2: Add group members
+
+To test out the permissions, we will add your own account to the groups.
+
+1. Open your newly created **tailwind-readers** group.
+
+2. Select **Members** on the left, then select **+ Add members**.
+
+    ![The group is displayed and add members is highlighted.](media/tailwind-readers.png "tailwind-readers group")
+
+3. Search for your user account that you are signed into for the lab, then select **Select**.
+
+4. Open your **tailwind-2019-writers** group.
+
+5. Select **Members** on the left, then select **+ Add members**.
+
+6. Search for `tailwind`, select your **tailwind-current-writers** group, then select **Select**.
+
+    ![The form is displayed as described.](media/add-members-writers.png "Add members")
+
+7. Select **Overview** in the left-hand menu, then **copy** the **Object Id**.
+
+    ![The group is displayed and the Object Id is highlighted.](media/tailwind-2019-writers-overview.png "tailwind-2019-writers group")
+
+    > **Note**: Save the **Object Id** value to Notepad or similar text editor. This will be used in a later step when you assign access control in the storage account.
+
+### Task 3: Configure data lake security - Role-Based Access Control (RBAC)
+
+1. In the Azure portal, open the **data-engineering-synapse-*xxxxxxx*** resource group.
+
+2. Open the **asadatalake*xxxxxxx*** storage account.
+
+    ![The storage account is selected.](media/resource-group-storage-account.png "Resource group")
+
+3. Select **Access Control (IAM)** in the left-hand menu.
+
+    ![Access Control is selected.](media/storage-access-control.png "Access Control")
+
+4. Select the **Role assignments** tab.
+
+    ![Role assignments is selected.](media/role-assignments-tab.png "Role assignments")
+
+5. Select **+ Add**, then **Add role assignment**.
+
+    ![Add role assignment is highlighted.](media/add-role-assignment.png "Add role assignment")
+
+6. For **Role**, select **Storage Blob Data Reader**. Click on the Members link and search for `tailwind-readers` and select your **tailwind-readers** group in the results. Then select **Save**.
+
+    Because your user account is added to this group, you will have read access to all files in the blob containers of this account. Tailwind Traders would need to add all users to the **tailwind-readers** security group.
+
+7. Select **+ Add**, then **Add role assignment**.
+
+    ![Add role assignment is highlighted.](media/add-role-assignment.png "Add role assignment")
+
+8. For **Role**, search **Storage Blob Data Owner**, then select **Next**.
+
+9. In the **Members** screen, click on **+ Select Members** and search for `tailwind` and select your **tailwind-history-owners** group in the results. Then click on **Review + Assign**, and click on **Review + Assign** again.
+
+
+    The **tailwind-history-owners** security group is now assigned to the Azure Storage built-in RBAC role **Storage Blob Data Owner** for the Azure Storage account containing the data lake. This allows Azure AD user and service principals that are added to this role to have the ability to modify all data.
+
+    Tailwind Traders needs to add the user security principals who will have have permissions to modify all historical data to the **tailwind-history-owners** security group.
+
+10. In the **Access Control (IAM)** list for the storage account, select your Azure user account under the **Storage Blob Data Owner** role, then select **Remove**.
+
+    Notice that the **tailwind-history-owners** group is assigned to the **Storage Blob Data Owner** group, and **tailwind-readers** is assigned to the **Storage Blob Data Reader** group.
+
+    > **Note**: You may need to navigate back to the resource group, then come back to this screen to see all of the new role assignments.
+
+### Task 4: Configure data lake security - Access Control Lists (ACLs)
+
+1. Select **Storage browser (preview)** on the left-hand menu. Expand **Blob containers** and select the **wwi-02** container. Open the **sale-small** folder, right-click the **Year=2019** folder, then select **Manage ACL**.
+
+    ![The 2019 folder is highlighted and Manage Access is selected.](media/manage-access-2019.png "Storage Explorer")
+
+2. In the Manage ACL screen, in the **Access permissions** screen, click on **+ Add principal**, paste the **object Id** value you copied from the **tailwind-2019-writers** security group into the **Add  principal** search box, click on **tailwind-2019-writers-suffix**, then select **Select**.
+
+3. Now you should see that the **tailwind-2019-writers** group is selected in the Manage ACL dialog. Check **Read**, **Write**, and **Execute** checkboxes, then select **Save**.
+
+4. In the Manage ACL screen, in the **Default permissions** screen, click on **+ Add principal**, paste the **object Id** value you copied from the **tailwind-2019-writers** security group into the **Add  principal** search box, click on **tailwind-2019-writers-suffix**, then select **Select**.
+
+    Now the security ACLs have been set to allow any users added to the **tailwind-current** security group to write to the **Year=2019** folder, by way of the **tailwind-2019-writers** group. These users can only manage current (2019 in this case) sales files.
+
+    At the start of the following year, to revoke write access to the 2019 data they would remove the **tailwind-current-writers** security group from the **tailwind-2019-writers** group. Members of **tailwind-readers** would continue to be able to read the contents of the file system because they have been granted read and execute (list) permissions not by the ACLs but by the RBAC built in role at the level of the file system.
+
+    Notice that we configured both the _access_ ACLs and _default_ ACLs in this configuration.
+
+    *Access* ACLs control access to an object. Files and directories both have access ACLs.
+
+    *Default* ACLs are templates of ACLs associated with a directory that determine the access ACLs for any child items that are created under that directory. Files do not have default ACLs.
+
+    Both access ACLs and default ACLs have the same structure.
+
+### Task 5: Test permissions
+
+1. In Synapse Studio, in the **Data** hub, on the **Linked** tab select the **Azure Data Lake Storage Gen2/asaworkspace*xxxxxxx*/wwi02** container; and in the *sale-small/Year=2019/Quarter=Q4/Month=12/Day=20191231* folder, right-click the **sale-small-20191231-snappy.parquet file**, select **New SQL script**, and select **Select TOP 100 rows**.
+
+    ![The Data hub is displayed with the options highlighted.](media/data-hub-parquet-select-rows.png "Select TOP 100 rows")
+
+2. Ensure **Built-in** is selected in the **Connect to** dropdown list above the query window, then run the query. Data is loaded by the serverless SQL pool endpoint and processed as if was coming from any regular relational database.
+
+    ![The Built-in connection is highlighted.](media/built-in-selected.png "Built-in SQL pool")
+
+    The cell output shows the query results from the Parquet file.
+
+    ![The cell output is displayed.](media/sql-on-demand-output.png "SQL output")
+
+    The read permissions to the Parquet file assigned to us through the **tailwind-readers** security group, which then is granted RBAC permissions on the storage account through the **Storage Blob Data Reader** role assignment, is what enabled us to view the file contents.
+
+    However, since we removed our account from the **Storage Blob Data Owner** role, and we did not add our account to the **tailwind-history-owners** security group, what if we try to write to this directory?
+
+    Let's give it a try.
+
+3. In the **wwi-02** pane, right-click the **sale-small-20191231-snappy.parquet** file, select **New Notebook**, then select **Load to DataFrame**.
+
+    ![The Data hub is displayed with the options highlighted.](media/data-hub-parquet-new-notebook.png "New notebook")
+
+4. Attach your **SparkPool01** Spark pool to the notebook.
+
+    ![The Spark pool is highlighted.](media/notebook-attach-spark-pool.png "Attach Spark pool")
+
+5. Run the cell in the notebook to load the data into a datafame. This may take a while as the spark pool is started, but eventually it should display the first ten rows of the data - confirming once again that you have permission to read data in this location.
+
+6. Under the results, select **+ Code** to add a code cell beneath the existing cell.
+
+7. Enter the following code, replacing *SUFFIX* with the unique suffix for your data lake resource (you can copy this from cell 1 above):
 
     ```python
-    from pyspark.sql.functions import udf, explode
-
-    flat=df.select('visitorId',explode('topProductPurchases').alias('topProductPurchases_flat'))
-    flat.show(100)
+    df.write.parquet('abfss://wwi-02@asadatalakeSUFFIX.dfs.core.windows.net/sale-small/Year=2019/Quarter=Q4/Month=12/Day=20191231/sale-small-20191231-snappy-test.parquet')
     ```
 
-    In this cell, we created a new dataframe named **flat** that includes the **visitorId** field and a new aliased field named **topProductPurchases_flat**. As you can see, the output is a bit easier to read and, by extension, easier to query.
+8. Run the new cell you just added. You should see a **403 error** in the output.
 
-    ![The improved output is displayed.](media/spark-explode-output.png "Spark explode output")
+    ![The error is displayed in Cell 2's output.](media/notebook-error.png "Notebook error")
 
-5. Create a new cell and execute the following code to create a new flattened version of the dataframe that extracts the **topProductPurchases_flat.productId** and **topProductPurchases_flat.itemsPurchasedLast12Months** fields to create new rows for each data combination:
+    As expected, you do not have write permissions. The error returned by cell 2 is, *This request is not authorized to perform this operation using this permission.*, with a status code of 403.
 
-    ```python
-    topPurchases = (flat.select('visitorId','topProductPurchases_flat.productId','topProductPurchases_flat.itemsPurchasedLast12Months')
-        .orderBy('visitorId'))
+9. Publish the notebook and end the session. Then sign out of Azure Synapse Studio and close the browser tab, returning to the Azure portal tab (<https://portal.azure.com>).
 
-    topPurchases.show(100)
-    ```
+10. On the **Home** page, in the portal menu, select **Azure Active Directory**.
 
-    In the output, notice that we now have multiple rows for each **visitorId**.
+11. Select **Groups** in the left-hand menu.
 
-    ![The vistorId rows are highlighted.](media/spark-toppurchases-output.png "topPurchases output")
+12. Type `tailwind` in the search box, then select your **tailwind-history-owners** group in the results.
 
-6. Let's order the rows by the number of items purchased in the last 12 months. Create a new code cell and execute the following code:
+13. Select **Members** on the left, then select **+ Add members**.
 
-    ```python
-    # Let's order by the number of items purchased in the last 12 months
-    sortedTopPurchases = topPurchases.orderBy("itemsPurchasedLast12Months")
+14. Add your user account that you are signed into for the lab, then select **Select**.
 
-    display(sortedTopPurchases.limit(100))
-    ```
+15. In a new tab, browse to Azure Synapse Studio (<https://web.azuresynapse.net/>). Then  on the **Develop** tab, expand **Notebooks** and re-open the notebook you published previously.
 
-    ![The result is displayed.](media/sorted-12-months.png "Sorted result set")
+16. Click **Run All** to re-run all of the cells in the notebook. After a while, the Spark session will start and the code will run. Cell 2 should return a status of **Succeeded**, indicating that a new file was written to the data lake store.
 
-7. How do we sort in reverse order? One might conclude that we could make a call like this: *topPurchases.orderBy("itemsPurchasedLast12Months desc")*. Try it in a new code cell:
+    ![Cell 2 succeeded.](media/notebook-succeeded.png "Notebook")
 
-    ```python
-    topPurchases.orderBy("itemsPurchasedLast12Months desc")
-    ```
+    The cell succeeded this time because we added our account to the **tailwind-history-owners** group, which is assigned the **Storage Blob Data Owner** role.
 
-    ![An error is displayed.](media/sort-desc-error.png "Sort desc error")
+    > **Note**: If you encounter the same error this time, **stop the Spark session** on the notebook, then select **Publish all**, then Publish. After publishing your changes, select your user profile on the top-right corner of the page and **log out**. **Close the browser tab** after logout is successful, then re-launch Synapse Studio (<https://web.azuresynapse.net/>), re-open the notebook, then re-run the cell. This may be needed because you must refresh the security token for the auth changes to take place.
 
-    Notice that there is an **AnalysisException**`** error, because **itemsPurchasedLast12Months desc** does not match up with a column name.
+17. At the top right of the notebook, use the **Stop Session** button to stop the notebook session.
 
-    Why does this not work?
+18. Publish the notebook if you want to save the changes. Then close it.
 
-    - The **DataFrames** API is built upon an SQL engine.
-    - There is a lot of familiarity with this API and SQL syntax in general.
-    - The problem is that **orderBy(..)** expects the name of the column.
-    - What we specified was an SQL expression in the form of **requests desc**.
-    - What we need is a way to programmatically express such an expression.
-    - This leads us to the second variant, **orderBy(Column)**,` and more specifically, the class **Column**.
+    Now let's verify that the file was written to the data lake.
 
-8. The **Column** class is an object that encompasses more than just the name of the column, but also column-level-transformations, such as sorting in a descending order. Replace the code that failed previously with the following code and run it:
+19. In Synapse Studio, in the **Data** hub, on the **Linked** tab select the **Azure Data Lake Storage Gen2/asaworkspace*xxxxxxx*/wwi02** container; and browse to the *sale-small/Year=2019/Quarter=Q4/Month=12/Day=20191231* folder to verify that a new file has been added to this folder.
 
-    ```python
-    sortedTopPurchases = (topPurchases
-        .orderBy( col("itemsPurchasedLast12Months").desc() ))
-
-    display(sortedTopPurchases.limit(100))
-    ```
-
-    Notice that the results are now sorted by the **itemsPurchasedLast12Months** column in descending order, thanks to the **desc()** method on the **col** object.
-
-    ![The results are sorted in descending order.](media/sort-desc-col.png "Sort desc")
-
-9. How many *types* of products did each customer purchase? To figure this out, we need to group by **visitorId** and aggregate on the number of rows per customer. Run the following code in a new code cell:
-
-    ```python
-    groupedTopPurchases = (sortedTopPurchases.select("visitorId")
-        .groupBy("visitorId")
-        .agg(count("*").alias("total"))
-        .orderBy("visitorId") )
-
-    display(groupedTopPurchases.limit(100))
-    ```
-
-    Notice how we use the **groupBy** method on the **visitorId** column, and the **agg** method over a count of records to display the total for each customer.
-
-    ![The query output is displayed.](media/spark-grouped-top-purchases.png "Grouped top purchases output")
-
-10. How many *total items* did each customer purchase? To figure this out, we need to group by **visitorId** and aggregate on the sum of **itemsPurchasedLast12Months** values per customer. Run the following code in a new code cell:
-
-    ```python
-    groupedTopPurchases = (sortedTopPurchases.select("visitorId","itemsPurchasedLast12Months")
-        .groupBy("visitorId")
-        .agg(sum("itemsPurchasedLast12Months").alias("totalItemsPurchased"))
-        .orderBy("visitorId") )
-
-    display(groupedTopPurchases.limit(100))
-    ```
-
-    Here we group by **visitorId** once again, but now we use a **sum** over the **itemsPurchasedLast12Months** column in the **agg** method. Notice that we included the **itemsPurchasedLast12Months** column in the **select** statement so we could use it in the **sum**.
-
-    ![The query output is displayed.](media/spark-grouped-top-purchases-total-items.png "Grouped top total items output")
-
-11. Keep the notebook open for the next exercise.
-
-## Exercise 4 - Integrating SQL and Spark pools in Azure Synapse Analytics
-
-Tailwind Traders wants to write to the SQL database associated with dedicated SQL pool after performing data engineering tasks in Spark, then reference that SQL database as a source for joining with Spark dataframes that contain data from other files.
-
-You decide to use the Apache Spark to Synapse SQL connector to efficiently transfer data between Spark databases and SQL databases in Azure Synapse.
-
-Transferring data between Spark databases and SQL databases can be done using JDBC. However, given two distributed systems such as Spark pools and SQL pools, JDBC tends to be a bottleneck with serial data transfer.
-
-The Apache Spark pool to Synapse SQL connector is a data source implementation for Apache Spark. It uses the Azure Data Lake Storage Gen2 and PolyBase in dedicated SQL pools to efficiently transfer data between the Spark cluster and the Synapse SQL instance.
-
-### Task 1: Update notebook
-
-1. We have been using Python code in these cells up to this point. If we want to use the Apache Spark pool to Synapse SQL connector, one option is to create a temporary view of the data within the dataframe. Run the following in a new code cell to create a view named **top_purchases**:
-
-    ```python
-    # Create a temporary view for top purchases so we can load from Scala
-    topPurchases.createOrReplaceTempView("top_purchases")
-    ```
-
-    We created a new temporary view from the **topPurchases** dataframe that we created earlier and which contains the flattened JSON user purchases data.
-
-2. We must run code that uses the Apache Spark pool to Synapse SQL connector in Scala. To do this, we add the **%%spark** magic to the cell. Run the following in a new code cell to read from the **top_purchases** view:
-
-    ```scala
-    %%spark
-    // Make sure the name of the dedcated SQL pool (SQLPool01 below) matches the name of your SQL pool.
-    val df = spark.sqlContext.sql("select * from top_purchases")
-    df.write.synapsesql("SQLPool01.wwi.TopPurchases", Constants.INTERNAL)
-    ```
-
-    > **Note**: The cell may take over a minute to execute. If you have run this command before, you will receive an error stating that "There is already and object named.." because the table already exists.
-
-    After the cell finishes executing, let's take a look at the list of SQL tables to verify that the table was successfully created for us.
-
-3. **Leave the notebook open**, then navigate to the **Data** hub (if not already selected).
-
-4. Select the **Workspace** tab, In the **ellipses (...)** menu for **Databases**, select **Refresh**. Then expand the **SQLPool01** database and its **Tables** folder, and expand the **wwi.TopPurchases** table and its columns.
-
-    The **wwi.TopPurchases** table was automatically created for us, based on the derived schema of the Spark dataframe. The Apache Spark pool to Synapse SQL connector was responsible for creating the table and efficiently loading the data into it.
-
-5. Return to the notebook and run the following code in a new code cell to read sales data from all the Parquet files located in the *sale-small/Year=2019/Quarter=Q4/Month=12/* folder:
-
-    ```python
-    dfsales = spark.read.load('abfss://wwi-02@' + datalake + '.dfs.core.windows.net/sale-small/Year=2019/Quarter=Q4/Month=12/*/*.parquet', format='parquet')
-    display(dfsales.limit(10))
-    ```
-
-    ![The cell output is displayed.](media/2019-sales.png "2019 sales")
-
-    Compare the file path in the cell above to the file path in the first cell. Here we are using a relative path to load **all December 2019 sales** data from the Parquet files located in **sale-small**, vs. just December 31, 2019 sales data.
-
-    Next, let's load the **TopSales** data from the SQL table we created earlier into a new Spark dataframe, then join it with this new **dfsales** dataframe. To do this, we must once again use the **%%spark** magic on a new cell since we'll use the Apache Spark pool to Synapse SQL connector to retrieve data from the SQL database. Then we need to add the dataframe contents to a new temporary view so we can access the data from Python.
-
-6. Run the following code in a new cell to read from the **TopSales** SQL table and save it to a temporary view:
-
-    ```scala
-    %%spark
-    // Make sure the name of the SQL pool (SQLPool01 below) matches the name of your SQL pool.
-    val df2 = spark.read.synapsesql("SQLPool01.wwi.TopPurchases")
-    df2.createTempView("top_purchases_sql")
-
-    df2.head(10)
-    ```
-
-    ![The cell and its output are displayed as described.](media/read-sql-pool.png "Read SQL pool")
-
-    The cell's language is set to Scala by using the **%%spark** magic at the top of the cell. We declared a new variable named **df2** as a new DataFrame created by the **spark.read.synapsesql** method, which reads from the **TopPurchases** table in the SQL database. Then we populated a new temporary view named **top_purchases_sql**. Finally, we showed the first 10 records with the **df2.head(10))** line. The cell output displays the dataframe values.
-
-7. Run the following code in a new code cell to create a new dataframe in Python from the **top_purchases_sql** temporary view, then display the first 10 results:
-
-    ```python
-    dfTopPurchasesFromSql = sqlContext.table("top_purchases_sql")
-
-    display(dfTopPurchasesFromSql.limit(10))
-    ```
-
-    ![The dataframe code and output are displayed.](media/df-top-purchases.png "dfTopPurchases dataframe")
-
-8. Run the following code in a new code cell to join the data from the sales Parquet files and the **TopPurchases** SQL database:
-
-    ```python
-    inner_join = dfsales.join(dfTopPurchasesFromSql,
-        (dfsales.CustomerId == dfTopPurchasesFromSql.visitorId) & (dfsales.ProductId == dfTopPurchasesFromSql.productId))
-
-    inner_join_agg = (inner_join.select("CustomerId","TotalAmount","Quantity","itemsPurchasedLast12Months","top_purchases_sql.productId")
-        .groupBy(["CustomerId","top_purchases_sql.productId"])
-        .agg(
-            sum("TotalAmount").alias("TotalAmountDecember"),
-            sum("Quantity").alias("TotalQuantityDecember"),
-            sum("itemsPurchasedLast12Months").alias("TotalItemsPurchasedLast12Months"))
-        .orderBy("CustomerId") )
-
-    display(inner_join_agg.limit(100))
-    ```
-
-    In the query, we joined the **dfsales** and **dfTopPurchasesFromSql** dataframes, matching on **CustomerId** and **ProductId**. This join combined the **TopPurchases** SQL table data with the December 2019 sales Parquet data.
-
-    We grouped by the **CustomerId** and **ProductId** fields. Since the **ProductId** field name is ambiguous (it exists in both dataframes), we had to fully-qualify the **ProductId** name to refer to the one in the **TopPurchases** dataframe.
-
-    Then we created an aggregate that summed the total amount spent on each product in December, the total number of product items in December, and the total product items purchased in the last 12 months.
-
-    Finally, we displayed the joined and aggregated data in a table view.
-
-    > **Note**: You can click the column headers in the Table view to sort the result set.
-
-    ![The cell contents and output are displayed.](media/join-output.png "Join output")
-
-9. At the top right of the notebook, use the **Stop Session** button to stop the notebook session.
-10. Publish the notebook if you want to review it again later. Then close it.
-
-## Important: Pause your SQL pool
-
-Complete these steps to free up resources you no longer need.
-
-1. In Synapse Studio, select the **Manage** hub.
-2. Select **SQL pools** in the left-hand menu. Hover over the **SQLPool01** dedicated SQL pool and select **||**.
-
-    ![The pause button is highlighted on the dedicated SQL pool.](media/pause-dedicated-sql-pool.png "Pause")
-
-3. When prompted, select **Pause**.
+    ![The test Parquet file is displayed.](media/test-parquet-file.png "Test parquet file")
