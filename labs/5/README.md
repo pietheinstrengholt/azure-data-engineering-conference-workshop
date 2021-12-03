@@ -17,9 +17,7 @@ After completing this lab, you will be able to:
 
 ## Lab setup and pre-requisites
 
-If you are not using a hosted environment, before starting this lab, ensure you have successfully completed the setup steps to create your lab environment. Then complete the following setup tasks to create a dedicated SQL pool.
-
-> **Note**: The setup tasks will take around 6-7 minutes. You can continue the lab while the script runs.
+For this lab, use **Environment 3** within your hosted lab environment.
 
 ## Exercise 0: Start the dedicated SQL pool
 

@@ -12,6 +12,10 @@ After completing this lab, you will be able to:
 
 - Orchestrate data movement and transformation in Azure Synapse Pipelines
 
+## Lab setup and pre-requisites
+
+For this lab, use **Environment 3** within your hosted lab environment.
+
 ## Exercise 1 - Create mapping data flow and pipeline
 
 In this exercise, you create a mapping data flow that copies user profile data to the data lake, then create a pipeline that orchestrates executing the data flow, and later on, the Spark notebook you create later in this lab.

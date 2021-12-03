@@ -14,6 +14,10 @@ After completing this lab, you will be able to:
 - Create data pipeline to import poorly formatted CSV files
 - Create Mapping Data Flows
 
+## Lab setup and pre-requisites
+
+For this lab, use **Environment 3** within your hosted lab environment.
+
 ## Exercise 1 - Code-free transformation at scale with Azure Synapse Pipelines
 
 Tailwind Traders would like code-free options for data engineering tasks. Their motivation is driven by the desire to allow junior-level data engineers who understand the data but do not have a lot of development experience build and maintain data transformation operations. The other driver for this requirement is to reduce fragility caused by complex code with reliance on libraries pinned to specific versions, remove code testing requirements, and improve ease of long-term maintenance.

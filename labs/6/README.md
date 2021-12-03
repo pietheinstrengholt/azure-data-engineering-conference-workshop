@@ -14,6 +14,10 @@ After completing this lab, you will be able to:
 - Import data with PolyBase and COPY using T-SQL
 - Use data loading best practices in Azure Synapse Analytics
 
+## Lab setup and pre-requisites
+
+For this lab, use **Environment 3** within your hosted lab environment.
+
 ## Exercise 1 - Import data with PolyBase and COPY using T-SQL
 
 There are different options for loading large amounts and varying types of data into Azure Synapse Analytics, such as through T-SQL commands using a Synapse SQL Pool, and with Azure Synapse pipelines. In our scenario, Tailwind Traders stores most of their raw data in a data lake and in different formats. Among the data loading options available to them, WWI's data engineers are most comfortable using T-SQL.
