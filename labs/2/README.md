@@ -4,7 +4,7 @@ lab:
     module: 'Module 1'
 ---
 
-# Lab 1 - Explore compute and storage options for data engineering workloads
+# Lab 2 - Explore compute and storage options for data engineering workloads
 
 This lab teaches ways to structure the data lake, and to optimize the files for exploration, streaming, and batch workloads. You will learn how to organize the data lake into levels of data refinement as they transform files through batch and stream processing. Then you will learn how to create indexes on their datasets, such as CSV, JSON, and Parquet files, and use them for potential query and workload acceleration.
 
