@@ -1707,9 +1707,14 @@ In this task, you create a new Synapse integration pipeline to execute the mappi
 
     ![The settings are configured as described.](media/pipeline-dataflow-settings.png "Data flow settings")
 
-7. Expand the **Staging** section at the bottom. Select the workspace ADLS Gen2 account within the **Staging linked service** select list. For the **Staging storage folder** `Container` field, enter **Staging** as the name of the container. The Integration Runtime will create the container if it does not exist.
+7. Expand **Staging** and configure the following:
 
-    ![The staging linked service is selected and the staging storage folder container setting is selected.](media/pipeline-set-staging.png "Staging section")
+    - **Staging linked service**: Select the **asadatalake*xxxxxxx*** linked service.
+    - **Staging storage folder**: Enter `staging` / `customers` (the **customers** folder will be automatically created for you during the first pipeline run).
+
+        ![The mapping data flow activity settings are configured as described.](media/pipeline-user-profiles-data-flow-settings.png "Mapping data flow activity settings")
+
+        The staging options under PolyBase are recommended when you have a large amount of data to move into or out of Azure Synapse Analytics. You will want to experiment with enabling and disabling staging on the data flow in a production environment to evaluate the difference in performance.
 
 8. Select **Publish all**, then select **Publish** in the dialog that appears.
 
