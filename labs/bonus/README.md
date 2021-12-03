@@ -9,30 +9,6 @@ In this module, the student will be able to:
 - Improve query performance with materialized views and result-set caching
 - Visualize data with SQL serverless and create a Power BI report
 
-## Lab details
-
-- [Module 9 - Build reports using Power BI integration with Azure Synapse Analytics](#module-9---build-reports-using-power-bi-integration-with-azure-synapse-analytics)
-  - [Lab details](#lab-details)
-  - [Resource naming throughout this lab](#resource-naming-throughout-this-lab)
-  - [Lab setup and pre-requisites](#lab-setup-and-pre-requisites)
-  - [Exercise 0: Start the dedicated SQL pool](#exercise-0-start-the-dedicated-sql-pool)
-  - [Exercise 1: Power BI and Synapse workspace integration](#exercise-1-power-bi-and-synapse-workspace-integration)
-    - [Task 1: Login to Power BI](#task-1-login-to-power-bi)
-    - [Task 2: Create a Power BI workspace](#task-2-create-a-power-bi-workspace)
-    - [Task 3: Connect to Power BI from Synapse](#task-3-connect-to-power-bi-from-synapse)
-    - [Task 4: Explore the Power BI linked service in Synapse Studio](#task-4-explore-the-power-bi-linked-service-in-synapse-studio)
-    - [Task 5: Create a new datasource to use in Power BI Desktop](#task-5-create-a-new-datasource-to-use-in-power-bi-desktop)
-    - [Task 6: Create a new Power BI report in Synapse Studio](#task-6-create-a-new-power-bi-report-in-synapse-studio)
-  - [Exercise 2: Optimizing integration with Power BI](#exercise-2-optimizing-integration-with-power-bi)
-    - [Task 1: Explore Power BI optimization options](#task-1-explore-power-bi-optimization-options)
-    - [Task 2: Improve performance with materialized views](#task-2-improve-performance-with-materialized-views)
-    - [Task 3: Improve performance with result-set caching](#task-3-improve-performance-with-result-set-caching)
-  - [Exercise 3: Visualize data with SQL Serverless](#exercise-3-visualize-data-with-sql-serverless)
-    - [Task 1: Explore the data lake with SQL Serverless](#task-1-explore-the-data-lake-with-sql-serverless)
-    - [Task 2: Visualize data with SQL serverless and create a Power BI report](#task-2-visualize-data-with-sql-serverless-and-create-a-power-bi-report)
-  - [Exercise 4: Cleanup](#exercise-4-cleanup)
-    - [Task 1: Pause the dedicated SQL pool](#task-1-pause-the-dedicated-sql-pool)
-
 ## Resource naming throughout this lab
 
 For the remainder of this guide, the following terms will be used for various ASA-related resources (make sure you replace them with actual names and values):
