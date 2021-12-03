@@ -18,6 +18,8 @@ After completing this lab, you will be able to:
 
 ## Lab setup and pre-requisites
 
+For this lab, use **Environment 3** within your hosted lab environment.
+
 Before starting this lab, open up Powershell in Administrator mode, and run the following command:
 
 ```

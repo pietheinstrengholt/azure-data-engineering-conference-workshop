@@ -16,7 +16,7 @@ After completing this lab, you will be able to:
 
 ## Lab setup and pre-requisites
 
-Before starting this lab, ensure you have successfully completed the setup steps to create your lab environment.
+For this lab, use **Environment 1** within your hosted lab environment.
 
 ## Exercise 1 - Delta Lake architecture
 
@@ -33,6 +33,15 @@ In this exercise, you will use an Azure Databricks workspace and perform Structu
     ![The Azure Databricks Launch Workspace button is displayed.](media/databricks-launch-workspace.png "Launch Workspace")
 
 3. In the left-hand menu of your Databricks workspace, select **Compute**.
+
+    **Please note**: If the `Test cluster` already exists, do not create a new cluster and start the existing one and skip ahead to Task 2.
+
+    ![The already existing test cluster is highlighted.](media/existing-cluster.png "Existing test cluster")
+
+    Hover over the existing `Test cluster` then select **Start**, then select **Confirm** in the dialog that appears.
+
+    ![The start button is highlighted.](media/start-cluster.png "Start cluster")
+
 4. Select **+Create Cluster** to add a new cluster.
 
     ![The create cluster page](media/create-a-cluster.png)
@@ -114,7 +123,7 @@ from com.microsoft.hyperspace.index import *
 spark.conf.set("spark.sql.autoBroadcastJoinThreshold", -1)
 
 # Replace the value below with the name of your primary ADLS Gen2 account for your Synapse workspace
-datalake = 'asadatalakeSUFFIX'
+datalake = 'asagadatalakeSUFFIX'
 
 dfSales = spark.read.parquet("abfss://wwi-02@" + datalake + ".dfs.core.windows.net/sale-small/Year=2019/Quarter=Q4/Month=12/*/*.parquet")
 dfSales.show(10)
@@ -126,7 +135,7 @@ dfCustomers.show(10)
 hyperspace = Hyperspace(spark)
 ```
 
-7. In the **datalake** variable value, replace ***SUFFIX*** with your unique resource name extension, so that the variable represents the name of your Azure Data Lake storage account (which should be **asadatalake*xxxxxx***).
+7. In the **datalake** variable value, replace ***SUFFIX*** with your unique resource name extension, so that the variable represents the name of your Azure Data Lake storage account (which should be **asagadatalake*xxxxxx***).
 
     >    To confirm this, do the following:
     >

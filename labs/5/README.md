@@ -21,7 +21,9 @@ If you are not using a hosted environment, before starting this lab, ensure you 
 
 > **Note**: The setup tasks will take around 6-7 minutes. You can continue the lab while the script runs.
 
-### Task 1: Create dedicated SQL pool
+## Exercise 0: Start the dedicated SQL pool
+
+This lab uses the dedicated SQL pool. As a first step, make sure it is not paused. If so, start it by following these instructions:
 
 1. Open Synapse Studio (<https://web.azuresynapse.net/>).
 
@@ -29,64 +31,15 @@ If you are not using a hosted environment, before starting this lab, ensure you 
 
     ![The manage hub is highlighted.](media/manage-hub.png "Manage hub")
 
-3. Select **SQL pools** in the left-hand menu, then select **+ New**.
+3. Select **SQL pools** in the left-hand menu **(1)**. If the dedicated SQL pool is paused, hover over the name of the pool and select **Resume (2)**.
 
-    ![The new button is highlighted.](media/new-dedicated-sql-pool.png "New dedicated SQL pool")
+    ![The resume button is highlighted on the dedicated SQL pool.](media/resume-dedicated-sql-pool.png "Resume")
 
-4. In the **Create dedicated SQL pool** page, enter **`SQLPool01`** (You <u>must</u> use this name exactly as displayed here) for the pool name, and then set the performance level to **DW100c** (move the slider all the way to the left).
+4. When prompted, select **Resume**. It will take a minute or two to resume the pool.
 
-5. Click **Review + create**. Then select **Create** on the validation step.
-6. Wait until the dedicated SQL pool is created.
+    ![The resume button is highlighted.](media/resume-dedicated-sql-pool-confirm.png "Resume")
 
-> **Important:** Once started, a dedicated SQL pool consumes credits in your Azure subscription until it is paused. If you take a break from this lab, or decide not to complete it; follow the instructions at the end of the lab to **pause your SQL pool**
-
-### Task 2: Execute PowerShell script
-
-1. In the hosted VM environment provided for this course, open Powershell in administrator mode, and execute the following to set the execution policy to Unrestricted so you can run the local PowerShell script file:
-
-    ```
-    Set-ExecutionPolicy Unrestricted
-    ```
-
-    > **Note**: If you receive a prompt that you are installing the module from an untrusted repository, select **Yes to All** to proceed with the setup.
-
-2. Change directories to the root of this repo within your local file system.
-
-    ```
-    cd C:\dp-203\data-engineering-ilt-deployment\Allfiles\00\artifacts\environment-setup\automation\
-    ```
-
-3. Enter the following command to run a PowerShell script that creates objects in the SQL pool:
-
-    ```
-    .\setup-sql.ps1
-    ```
-
-4. When prompted to sign into Azure, and your browser opens; sign in using your credentials. After signing in, you can close the browser and return to Windows PowerShell.
-
-5. When prompted, sign into your Azure account again (this is required so that the script can manage resources in your Azure subscription - be sure you use the same credentials as before).
-
-6. If you have more than one Azure subscription, when prompted, select the one you want to use in the labs by entering its number in the list of subscriptions.
-
-7. When prompted, enter the name of the resource group containing your Azure Synapse Analytics workspace (such as **data-engineering-synapse-*xxxxxxx***).
-
-8. **Continue on to Exercise 1** while this script is running.
-
-> **NOTE** This script will take about 2-3 minutes to complete.
-> 
-> If it seems as though the script hangs while creating linked services for the SQLPool01 dedicated SQL pool (there are 3), press **Enter**. This tends to refresh the PowerShell script and allows it to continue to the end.
->
-> ### Potential errors that you can ignore
->
-> You may encounter a few errors and warnings during the script execution. The errors below can safely be ignored:
-> 
-> 1. The following error may occur when creating SQL users and adding role assignments in the dedicated SQL pool, and can safely be ignored:
->
->       *Principal 'xxx@xxx.com' could not be created. Only connections established with Active Directory accounts can create other Active Directory users.*
->
->2. The following error may also occur and can safely be ignored:
->
->       *07-create-wwi-perf-sale-heap with label CTAS : Sale_Heap. Cannot index into a null array.*
+> **Continue to the next exercise** while the dedicated SQL pool resumes.
 
 ## Exercise 1 - Perform Data Exploration in Synapse Studio
 
