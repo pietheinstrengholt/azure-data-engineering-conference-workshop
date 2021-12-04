@@ -26,9 +26,11 @@ For the remainder of this guide, the following terms will be used for various AS
 
 For this lab, use **Environment 3** within your hosted lab environment.
 
-## Exercise 0: Start the dedicated SQL pool
+## Exercise 0: Start the dedicated SQL pool and lab VM
 
 This lab uses the dedicated SQL pool. As a first step, make sure it is not paused. If so, start it by following these instructions:
+
+### Task 1: Start the dedicated SQL pool
 
 1. Open Synapse Studio (<https://web.azuresynapse.net/>).
 
@@ -44,7 +46,19 @@ This lab uses the dedicated SQL pool. As a first step, make sure it is not pause
 
     ![The resume button is highlighted.](media/resume-dedicated-sql-pool-confirm.png "Resume")
 
-> **Continue to the next exercise** while the dedicated SQL pool resumes.
+> **Continue to the next task** while the dedicated SQL pool resumes.
+
+### Task 2: Start the lab VM
+
+> **Note**: Complete this task if you are using a hosted lab environment.
+
+1. Navigate to the **Resources** tab **(1)** within your hosted lab environment instructions pane.
+
+2. If the VM is in a stopped state, select **Start** next to the VM status **(2)**.
+
+    ![Start the lab VM.](media/start-vm.png "Start VM")
+
+> **Continue to the next exercise** while the VM starts.
 
 ## Exercise 1: Power BI and Synapse workspace integration
 
@@ -152,26 +166,29 @@ This lab uses the dedicated SQL pool. As a first step, make sure it is not pause
 3. Connect to **SQLPool01**, then execute the following query to get an approximation of its execution time (may be around 1 minute). This will be the query we'll use to bring data in the Power BI report you'll build later in this exercise.
 
     ```sql
-    SELECT
-        FS.CustomerID
-        ,P.Seasonality
-        ,D.Year
-        ,D.Quarter
-        ,D.Month
-        ,avg(FS.TotalAmount) as AvgTotalAmount
-        ,avg(FS.ProfitAmount) as AvgProfitAmount
-        ,sum(FS.TotalAmount) as TotalAmount
-        ,sum(FS.ProfitAmount) as ProfitAmount
-    FROM
-        wwi.SaleSmall FS
-        JOIN wwi.Product P ON P.ProductId = FS.ProductId
-        JOIN wwi.Date D ON FS.TransactionDateId = D.DateId
-    GROUP BY
-        FS.CustomerID
-        ,P.Seasonality
-        ,D.Year
-        ,D.Quarter
-        ,D.Month
+    SELECT count(*) FROM
+    (
+        SELECT
+            FS.CustomerID
+            ,P.Seasonality
+            ,D.Year
+            ,D.Quarter
+            ,D.Month
+            ,avg(FS.TotalAmount) as AvgTotalAmount
+            ,avg(FS.ProfitAmount) as AvgProfitAmount
+            ,sum(FS.TotalAmount) as TotalAmount
+            ,sum(FS.ProfitAmount) as ProfitAmount
+        FROM
+            wwi.SaleSmall FS
+            JOIN wwi.Product P ON P.ProductId = FS.ProductId
+            JOIN wwi.Date D ON FS.TransactionDateId = D.DateId
+        GROUP BY
+            FS.CustomerID
+            ,P.Seasonality
+            ,D.Year
+            ,D.Quarter
+            ,D.Month
+    ) T
     ```
 
     You should see a query result of 194683820.
