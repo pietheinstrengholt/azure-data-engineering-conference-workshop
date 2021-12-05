@@ -4,13 +4,17 @@ lab:
     module: 'Module 7'
 ---
 
-# Lab 7 - Integrate data from notebooks with Azure Data Factory or Azure Synapse Pipelines
+# Lab 8 - Integrate data from notebooks with Azure Data Factory or Azure Synapse Pipelines
 
 You will learn how to create linked services, and orchestrate data movement and transformation in Azure Synapse Pipelines.
 
 After completing this lab, you will be able to:
 
 - Orchestrate data movement and transformation in Azure Synapse Pipelines
+
+## Lab setup and pre-requisites
+
+For this lab, use **Environment 3** within your hosted lab environment.
 
 ## Exercise 1 - Create mapping data flow and pipeline
 

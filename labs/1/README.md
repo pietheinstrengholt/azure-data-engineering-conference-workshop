@@ -1,4 +1,4 @@
-# Module 2 - Design and Implement the serving layer
+# Lab 1 - Design and Implement the serving layer
 
 This module teaches how to design and implement data stores in a modern data warehouse to optimize analytical workloads. The student will learn how to design a multidimensional schema to store fact and dimension data. Then the student will learn how to populate slowly changing dimensions through incremental data loading from Azure Data Factory.
 
@@ -9,7 +9,7 @@ In this module, the student will be able to:
 
 ## Lab details
 
-- [Module 2 - Design and Implement the serving layer](#module-2---design-and-implement-the-serving-layer)
+- [Lab 1 - Design and Implement the serving layer](#lab-1---design-and-implement-the-serving-layer)
   - [Lab details](#lab-details)
     - [Lab setup and pre-requisites](#lab-setup-and-pre-requisites)
   - [Exercise 0: Start the dedicated SQL pool](#exercise-0-start-the-dedicated-sql-pool)
@@ -40,11 +40,11 @@ In this module, the student will be able to:
 
 ### Lab setup and pre-requisites
 
-> **Note:** Only complete the `Lab setup and pre-requisites` steps if you are **not** using a hosted lab environment, and are instead using your own Azure subscription. Otherwise, skip ahead to Exercise 0.
+[Azure Data Studio](https://docs.microsoft.com/sql/azure-data-studio/download-azure-data-studio?view=sql-server-ver15)
 
-1. If you have not already, follow the [lab setup instructions](https://github.com/solliancenet/microsoft-data-engineering-ilt-deploy/blob/main/setup/02/README.md) for this module.
+For this lab, use **Environment 2** within your hosted lab environment.
 
-2. Install [Azure Data Studio](https://docs.microsoft.com/sql/azure-data-studio/download-azure-data-studio?view=sql-server-ver15) on your computer or lab virtual machine.
+> **Please note**, it will take about **15 minutes** to start up the lab environment.
 
 ## Exercise 0: Start the dedicated SQL pool
 
@@ -1457,7 +1457,7 @@ In this task, you create a mapping data flow to create a Type 1 SCD.
 7. Under `Source settings`, configure the following properties:
 
     - **Output stream name**: Enter `SourceDB`
-    - **Source type**: Select `Dataset`
+    - **Source type**: Select `Integration dataset`
     - **Options**: Check `Allow schema drift` and leave the other options unchecked
     - **Sampling**: Select `Disable`
     - **Dataset**: Select **+ New** to create a new dataset
@@ -1504,6 +1504,8 @@ In this task, you create a mapping data flow to create a Type 1 SCD.
 
 15. Select **Refresh** next to `Data preview` to preview the output of the `HashKey` column, which uses the `sha2` function you added. you should see that each hash value is unique.
 
+    > **Please note**: If the data flow debugger has not yet started, please continue to the next step. You can come back later to see the sample results.
+
     ![The data preview is displayed.](media/data-flow-derived-column-expression-builder.png "Visual expression builder")
 
 16. Select **Save and finish** to close the expression builder.
@@ -1515,7 +1517,7 @@ In this task, you create a mapping data flow to create a Type 1 SCD.
 18. Under `Source settings`, configure the following properties:
 
     - **Output stream name**: Enter `SynapseDimCustomer`
-    - **Source type**: Select `Dataset`
+    - **Source type**: Select `Integration dataset`
     - **Options**: Check `Allow schema drift` and leave the other options unchecked
     - **Sampling**: Select `Disable`
     - **Dataset**: Select **+ New** to create a new dataset
@@ -1634,7 +1636,7 @@ In this task, you create a mapping data flow to create a Type 1 SCD.
 
     - **Output stream name**: Enter `Sink`
     - **Incoming stream**: Select `AllowUpserts`
-    - **Sink type**: Select `Dataset`
+    - **Sink type**: Select `Integration dataset`
     - **Dataset**: Select `DimCustomer`
     - **Options**: Check `Allow schema drift` and uncheck `Validate schema`
 
@@ -1705,19 +1707,28 @@ In this task, you create a new Synapse integration pipeline to execute the mappi
 
     ![The settings are configured as described.](media/pipeline-dataflow-settings.png "Data flow settings")
 
-6. Select **Publish all**, then select **Publish** in the dialog that appears.
+7. Expand **Staging** and configure the following:
+
+    - **Staging linked service**: Select the **asadatalake*xxxxxxx*** linked service.
+    - **Staging storage folder**: Enter `staging` / `customers` (the **customers** folder will be automatically created for you during the first pipeline run).
+
+        ![The mapping data flow activity settings are configured as described.](media/pipeline-user-profiles-data-flow-settings.png "Mapping data flow activity settings")
+
+        The staging options under PolyBase are recommended when you have a large amount of data to move into or out of Azure Synapse Analytics. You will want to experiment with enabling and disabling staging on the data flow in a production environment to evaluate the difference in performance.
+
+8. Select **Publish all**, then select **Publish** in the dialog that appears.
 
     ![The publish all button is displayed.](media/publish-all-button.png "Publish all button")
 
-7. After publishing completes, select **Add trigger** above the pipeline canvas, then select **Trigger now**.
+9. After publishing completes, select **Add trigger** above the pipeline canvas, then select **Trigger now**.
 
     ![The add trigger button and trigger now menu item are both highlighted.](media/pipeline-trigger.png "Pipeline trigger")
 
-8. Navigate to the **Monitor** hub.
+10. Navigate to the **Monitor** hub.
 
     ![Monitor hub.](media/monitor-hub.png "Monitor hub")
 
-9. Select **Pipeline runs** in the left-hand menu **(1)** and wait for the pipeline run to successfully complete **(2)**. You may have to select **Refresh (3)** several times until the pipeline run completes.
+11. Select **Pipeline runs** in the left-hand menu **(1)** and wait for the pipeline run to successfully complete **(2)**. You may have to select **Refresh (3)** several times until the pipeline run completes.
 
     ![The pipeline run successfully completed.](media/pipeline-runs.png "Pipeline runs")
 

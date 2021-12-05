@@ -1,4 +1,4 @@
-# Module 16 - Build reports using Power BI integration with Azure Synapse Analytics
+# Module 9 - Build reports using Power BI integration with Azure Synapse Analytics
 
 In this module, the student will learn how to integrate Power BI with their Synapse workspace to build reports in Power BI. The student will create a new datasource and Power BI report in Synapse Studio. Then the student will learn how to improve query performance with materialized views and result-set caching. Finally, the student will explore the data lake with serverless SQL pools and create visualizations against that data in Power BI.
 
@@ -8,30 +8,6 @@ In this module, the student will be able to:
 - Optimize integration with Power BI
 - Improve query performance with materialized views and result-set caching
 - Visualize data with SQL serverless and create a Power BI report
-
-## Lab details
-
-- [Module 16 - Build reports using Power BI integration with Azure Synapse Analytics](#module-16---build-reports-using-power-bi-integration-with-azure-synapse-analytics)
-  - [Lab details](#lab-details)
-  - [Resource naming throughout this lab](#resource-naming-throughout-this-lab)
-  - [Lab setup and pre-requisites](#lab-setup-and-pre-requisites)
-  - [Exercise 0: Start the dedicated SQL pool](#exercise-0-start-the-dedicated-sql-pool)
-  - [Exercise 1: Power BI and Synapse workspace integration](#exercise-1-power-bi-and-synapse-workspace-integration)
-    - [Task 1: Login to Power BI](#task-1-login-to-power-bi)
-    - [Task 2: Create a Power BI workspace](#task-2-create-a-power-bi-workspace)
-    - [Task 3: Connect to Power BI from Synapse](#task-3-connect-to-power-bi-from-synapse)
-    - [Task 4: Explore the Power BI linked service in Synapse Studio](#task-4-explore-the-power-bi-linked-service-in-synapse-studio)
-    - [Task 5: Create a new datasource to use in Power BI Desktop](#task-5-create-a-new-datasource-to-use-in-power-bi-desktop)
-    - [Task 6: Create a new Power BI report in Synapse Studio](#task-6-create-a-new-power-bi-report-in-synapse-studio)
-  - [Exercise 2: Optimizing integration with Power BI](#exercise-2-optimizing-integration-with-power-bi)
-    - [Task 1: Explore Power BI optimization options](#task-1-explore-power-bi-optimization-options)
-    - [Task 2: Improve performance with materialized views](#task-2-improve-performance-with-materialized-views)
-    - [Task 3: Improve performance with result-set caching](#task-3-improve-performance-with-result-set-caching)
-  - [Exercise 3: Visualize data with SQL Serverless](#exercise-3-visualize-data-with-sql-serverless)
-    - [Task 1: Explore the data lake with SQL Serverless](#task-1-explore-the-data-lake-with-sql-serverless)
-    - [Task 2: Visualize data with SQL serverless and create a Power BI report](#task-2-visualize-data-with-sql-serverless-and-create-a-power-bi-report)
-  - [Exercise 4: Cleanup](#exercise-4-cleanup)
-    - [Task 1: Pause the dedicated SQL pool](#task-1-pause-the-dedicated-sql-pool)
 
 ## Resource naming throughout this lab
 
@@ -46,28 +22,15 @@ For the remainder of this guide, the following terms will be used for various AS
 
 ## Lab setup and pre-requisites
 
-> **Note:** Only complete the `Lab setup and pre-requisites` steps if you are **not** using a hosted lab environment, and are instead using your own Azure subscription. Otherwise, skip ahead to Exercise 0.
+[Power BI Desktop](https://www.microsoft.com/download/details.aspx?id=58494)
 
-Install [Power BI Desktop](https://www.microsoft.com/download/details.aspx?id=58494) on your lab computer or VM.
+For this lab, use **Environment 3** within your hosted lab environment.
 
-**Complete the [lab setup instructions](https://github.com/solliancenet/microsoft-data-engineering-ilt-deploy/blob/main/setup/04/README.md)** for this module.
-
-Note, the following modules share this same environment:
-
-- [Module 4](labs/04/README.md)
-- [Module 5](labs/05/README.md)
-- [Module 7](labs/07/README.md)
-- [Module 8](labs/08/README.md)
-- [Module 9](labs/09/README.md)
-- [Module 10](labs/10/README.md)
-- [Module 11](labs/11/README.md)
-- [Module 12](labs/12/README.md)
-- [Module 13](labs/13/README.md)
-- [Module 16](labs/16/README.md)
-
-## Exercise 0: Start the dedicated SQL pool
+## Exercise 0: Start the dedicated SQL pool and lab VM
 
 This lab uses the dedicated SQL pool. As a first step, make sure it is not paused. If so, start it by following these instructions:
+
+### Task 1: Start the dedicated SQL pool
 
 1. Open Synapse Studio (<https://web.azuresynapse.net/>).
 
@@ -83,7 +46,19 @@ This lab uses the dedicated SQL pool. As a first step, make sure it is not pause
 
     ![The resume button is highlighted.](media/resume-dedicated-sql-pool-confirm.png "Resume")
 
-> **Continue to the next exercise** while the dedicated SQL pool resumes.
+> **Continue to the next task** while the dedicated SQL pool resumes.
+
+### Task 2: Start the lab VM
+
+> **Note**: Complete this task if you are using a hosted lab environment.
+
+1. Navigate to the **Resources** tab **(1)** within your hosted lab environment instructions pane.
+
+2. If the VM is in a stopped state, select **Start** next to the VM status **(2)**.
+
+    ![Start the lab VM.](media/start-vm.png "Start VM")
+
+> **Continue to the next exercise** while the VM starts.
 
 ## Exercise 1: Power BI and Synapse workspace integration
 
@@ -191,26 +166,29 @@ This lab uses the dedicated SQL pool. As a first step, make sure it is not pause
 3. Connect to **SQLPool01**, then execute the following query to get an approximation of its execution time (may be around 1 minute). This will be the query we'll use to bring data in the Power BI report you'll build later in this exercise.
 
     ```sql
-    SELECT
-        FS.CustomerID
-        ,P.Seasonality
-        ,D.Year
-        ,D.Quarter
-        ,D.Month
-        ,avg(FS.TotalAmount) as AvgTotalAmount
-        ,avg(FS.ProfitAmount) as AvgProfitAmount
-        ,sum(FS.TotalAmount) as TotalAmount
-        ,sum(FS.ProfitAmount) as ProfitAmount
-    FROM
-        wwi.SaleSmall FS
-        JOIN wwi.Product P ON P.ProductId = FS.ProductId
-        JOIN wwi.Date D ON FS.TransactionDateId = D.DateId
-    GROUP BY
-        FS.CustomerID
-        ,P.Seasonality
-        ,D.Year
-        ,D.Quarter
-        ,D.Month
+    SELECT count(*) FROM
+    (
+        SELECT
+            FS.CustomerID
+            ,P.Seasonality
+            ,D.Year
+            ,D.Quarter
+            ,D.Month
+            ,avg(FS.TotalAmount) as AvgTotalAmount
+            ,avg(FS.ProfitAmount) as AvgProfitAmount
+            ,sum(FS.TotalAmount) as TotalAmount
+            ,sum(FS.ProfitAmount) as ProfitAmount
+        FROM
+            wwi.SaleSmall FS
+            JOIN wwi.Product P ON P.ProductId = FS.ProductId
+            JOIN wwi.Date D ON FS.TransactionDateId = D.DateId
+        GROUP BY
+            FS.CustomerID
+            ,P.Seasonality
+            ,D.Year
+            ,D.Quarter
+            ,D.Month
+    ) T
     ```
 
     You should see a query result of 194683820.
